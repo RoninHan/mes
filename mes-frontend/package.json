@@ -1,0 +1,35 @@
+{
+  "name": "mes-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext js,jsx"
+  },
+  "dependencies": {
+    "antd": "^5.21.0",
+    "@ant-design/pro-components": "^2.7.0",
+    "axios": "^1.7.0",
+    "mqtt": "^5.10.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-i18next": "^15.0.0",
+    "i18next": "^23.10.0",
+    "react-redux": "^9.1.0",
+    "@reduxjs/toolkit": "^2.2.0",
+    "react-router-dom": "^6.28.0",
+    "react-chartjs-2": "^5.2.0",
+    "chart.js": "^4.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react-swc": "^3.7.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.7",
+    "vite": "^6.0.0"
+  }
+}
+
+
