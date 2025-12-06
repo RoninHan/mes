@@ -1,0 +1,60 @@
+   0.967485600s  INFO prepare_target{force=false package_id=mes-backend v0.1.0 (E:\code\mes\mes-backend) target="mes-backend"}: cargo::core::compiler::fingerprint: fingerprint error for mes-backend v0.1.0 (E:\code\mes\mes-backend)/Check { test: false }/TargetInner { name: "mes-backend", doc: true, ..: with_path("E:\\code\\mes\\mes-backend\\src\\main.rs", Edition2021) }
+   0.967536700s  INFO prepare_target{force=false package_id=mes-backend v0.1.0 (E:\code\mes\mes-backend) target="mes-backend"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\code\mes\mes-backend\target\debug\.fingerprint\mes-backend-3380a049a5f8a931\bin-mes-backend`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.127063800s  INFO prepare_target{force=false package_id=mes-backend v0.1.0 (E:\code\mes\mes-backend) target="mes-backend"}: cargo::core::compiler::fingerprint: fingerprint error for mes-backend v0.1.0 (E:\code\mes\mes-backend)/Check { test: true }/TargetInner { name: "mes-backend", doc: true, ..: with_path("E:\\code\\mes\\mes-backend\\src\\main.rs", Edition2021) }
+   1.127096300s  INFO prepare_target{force=false package_id=mes-backend v0.1.0 (E:\code\mes\mes-backend) target="mes-backend"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\code\mes\mes-backend\target\debug\.fingerprint\mes-backend-1904af891bc2e0a7\test-bin-mes-backend`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+    Checking mes-backend v0.1.0 (E:\code\mes\mes-backend)
+error: could not compile `mes-backend` (bin "mes-backend") due to 513 previous errors; 17 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `mes-backend` (bin "mes-backend" test) due to 513 previous errors; 17 warnings emitted

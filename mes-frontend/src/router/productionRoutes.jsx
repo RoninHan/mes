@@ -4,6 +4,10 @@ import ProductionOrderList from "../pages/Production/ProductionOrderList";
 import WorkOrderList from "../pages/Production/WorkOrderList";
 import ProductionReportList from "../pages/Production/ProductionReportList";
 import ProductionSchedule from "../pages/Production/ProductionSchedule";
+import MaterialRequirementList from "../pages/Production/MaterialRequirementList";
+import PickingOrderList from "../pages/Production/PickingOrderList";
+import ReturnOrderList from "../pages/Production/ReturnOrderList";
+import ProductionReceiptList from "../pages/Production/ProductionReceiptList";
 
 export default [
   {
@@ -25,5 +29,21 @@ export default [
   {
     path: "/production/schedule",
     element: <ProductionSchedule />
+  },
+  {
+    path: "/production/material-requirements",
+    element: <MaterialRequirementList />
+  },
+  {
+    path: "/production/picking-orders",
+    element: <PickingOrderList />
+  },
+  {
+    path: "/production/return-orders",
+    element: <ReturnOrderList />
+  },
+  {
+    path: "/production/receipts",
+    element: <ProductionReceiptList />
   }
 ];

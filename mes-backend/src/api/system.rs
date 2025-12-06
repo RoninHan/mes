@@ -1,5 +1,6 @@
 use crate::api::ApiContext;
 use crate::db::dao;
+use crate::model::system::*;
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
@@ -23,11 +24,7 @@ fn default_page_size() -> u64 {
     20
 }
 
-#[derive(Debug, Serialize)]
-pub struct PageResult<T> {
-    pub items: Vec<T>,
-    pub total: u64,
-}
+// UserDto / UserPayload 保持不变
 
 #[derive(Debug, Serialize)]
 pub struct UserDto {
@@ -59,6 +56,14 @@ pub fn router() -> axum::Router<ApiContext> {
         .route(
             "/system/users/:id",
             get(get_user).put(update_user).delete(delete_user),
+        )
+        .route(
+            "/system/login-logs",
+            get(list_login_logs),
+        )
+        .route(
+            "/system/operation-logs",
+            get(list_operation_logs),
         )
 }
 
@@ -189,6 +194,77 @@ async fn delete_user(
         return Err(StatusCode::NOT_FOUND);
     }
     Ok(StatusCode::NO_CONTENT)
+}
+
+// ---- Login logs ----
+
+async fn list_login_logs(
+    State(ctx): State<ApiContext>,
+    Query(q): Query<LoginLogQuery>,
+) -> Result<Json<PageResult<LoginLogDto>>, StatusCode> {
+    let filter = dao::login_log_dao::LoginLogFilter {
+        user_id: q.user_id,
+        username: q.username.clone(),
+        result: q.result,
+    };
+    let (items, total) =
+        dao::login_log_dao::list(ctx.db.conn(), filter, q.page, q.page_size)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mapped = items
+        .into_iter()
+        .map(|m| LoginLogDto {
+            id: m.id,
+            user_id: m.user_id,
+            username: m.username,
+            login_time: m.login_time.into(),
+            login_ip: m.login_ip,
+            user_agent: m.user_agent,
+            result: m.result,
+            fail_reason: m.fail_reason,
+        })
+        .collect();
+
+    Ok(Json(PageResult { items: mapped, total }))
+}
+
+// ---- Operation logs ----
+
+async fn list_operation_logs(
+    State(ctx): State<ApiContext>,
+    Query(q): Query<OperationLogQuery>,
+) -> Result<Json<PageResult<OperationLogDto>>, StatusCode> {
+    let filter = dao::operation_log_dao::OperationLogFilter {
+        user_id: q.user_id,
+        module: q.module.clone(),
+        action: q.action.clone(),
+        success: q.success,
+    };
+    let (items, total) =
+        dao::operation_log_dao::list(ctx.db.conn(), filter, q.page, q.page_size)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mapped = items
+        .into_iter()
+        .map(|m| OperationLogDto {
+            id: m.id,
+            user_id: m.user_id,
+            username: m.username,
+            module: m.module,
+            action: m.action,
+            request_path: m.request_path,
+            method: m.method,
+            request_time: m.request_time.into(),
+            success: m.success,
+            client_ip: m.client_ip,
+            payload: m.payload,
+            error_message: m.error_message,
+        })
+        .collect();
+
+    Ok(Json(PageResult { items: mapped, total }))
 }
 
 

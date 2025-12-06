@@ -25,6 +25,57 @@ pub fn router() -> axum::Router<ApiContext> {
         .route("/equipment/:id/status", get(get_realtime_status))
         .route("/equipment/status-log", get(list_status_log))
         .route("/equipment/:id/control", post(control_equipment))
+        .route(
+            "/equipment/maintenance-plans",
+            get(list_maintenance_plans).post(create_maintenance_plan),
+        )
+        .route(
+            "/equipment/maintenance-plans/:id",
+            get(get_maintenance_plan)
+                .put(update_maintenance_plan)
+                .delete(delete_maintenance_plan),
+        )
+        .route(
+            "/equipment/maintenance-tasks",
+            get(list_maintenance_tasks).post(create_maintenance_task),
+        )
+        .route(
+            "/equipment/maintenance-tasks/:id",
+            get(get_maintenance_task)
+                .put(update_maintenance_task)
+                .delete(delete_maintenance_task),
+        )
+        .route(
+            "/equipment/fault-reports",
+            get(list_fault_reports).post(create_fault_report),
+        )
+        .route(
+            "/equipment/fault-reports/:id",
+            get(get_fault_report)
+                .put(update_fault_report)
+                .delete(delete_fault_report),
+        )
+        .route(
+            "/equipment/repair-orders",
+            get(list_repair_orders).post(create_repair_order),
+        )
+        .route(
+            "/equipment/repair-orders/:id",
+            get(get_repair_order)
+                .put(update_repair_order)
+                .delete(delete_repair_order),
+        )
+        .route(
+            "/equipment/inspections",
+            get(list_inspections).post(create_inspection),
+        )
+        .route(
+            "/equipment/inspections/:id",
+            get(get_inspection)
+                .put(update_inspection)
+                .delete(delete_inspection),
+        )
+        .route("/equipment/kpi", get(list_equipment_kpi))
 }
 
 async fn list_equipment(

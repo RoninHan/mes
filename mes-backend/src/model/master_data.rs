@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 fn default_page() -> u64 {
     0
@@ -161,6 +162,183 @@ pub struct CustomerDto {
     pub contact_person: Option<String>,
     pub contact_phone: Option<String>,
     pub status: i8,
+    pub remark: Option<String>,
+}
+
+// ---------- Workshops ----------
+
+#[derive(Debug, Deserialize)]
+pub struct WorkshopQuery {
+    pub status: Option<i16>,
+    pub keyword: Option<String>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WorkshopPayload {
+    pub workshop_code: String,
+    pub workshop_name: String,
+    pub workshop_type: i16,
+    pub manager_id: Option<i64>,
+    pub status: Option<i16>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WorkshopDto {
+    pub id: i64,
+    pub workshop_code: String,
+    pub workshop_name: String,
+    pub workshop_type: i16,
+    pub manager_id: Option<i64>,
+    pub status: i16,
+    pub remark: Option<String>,
+}
+
+// ---------- Warehouses ----------
+
+#[derive(Debug, Deserialize)]
+pub struct WarehouseQuery {
+    pub warehouse_type: Option<i16>,
+    pub status: Option<i16>,
+    pub keyword: Option<String>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WarehousePayload {
+    pub warehouse_code: String,
+    pub warehouse_name: String,
+    pub warehouse_type: i16,
+    pub location: Option<String>,
+    pub status: Option<i16>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WarehouseDto {
+    pub id: i64,
+    pub warehouse_code: String,
+    pub warehouse_name: String,
+    pub warehouse_type: i16,
+    pub location: Option<String>,
+    pub status: i16,
+    pub remark: Option<String>,
+}
+
+// ---------- Locations ----------
+
+#[derive(Debug, Deserialize)]
+pub struct LocationQuery {
+    pub warehouse_id: Option<i64>,
+    pub status: Option<i16>,
+    pub keyword: Option<String>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LocationPayload {
+    pub warehouse_id: i64,
+    pub location_code: String,
+    pub location_name: String,
+    pub location_type: i16,
+    pub status: Option<i16>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LocationDto {
+    pub id: i64,
+    pub warehouse_id: i64,
+    pub location_code: String,
+    pub location_name: String,
+    pub location_type: i16,
+    pub status: i16,
+    pub remark: Option<String>,
+}
+
+// ---------- BOM ----------
+
+#[derive(Debug, Deserialize)]
+pub struct BomQuery {
+    pub material_id: Option<i64>,
+    pub status: Option<i16>,
+    pub is_default: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BomPayload {
+    pub material_id: i64,
+    pub bom_code: String,
+    pub version: String,
+    pub bom_type: i16,
+    pub is_default: Option<i16>,
+    pub status: Option<i16>,
+    pub items: Value,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BomDto {
+    pub id: i64,
+    pub material_id: i64,
+    pub bom_code: String,
+    pub version: String,
+    pub bom_type: i16,
+    pub is_default: i16,
+    pub status: i16,
+    pub items: Value,
+    pub remark: Option<String>,
+}
+
+// ---------- Process Routes ----------
+
+#[derive(Debug, Deserialize)]
+pub struct ProcessRouteQuery {
+    pub material_id: Option<i64>,
+    pub status: Option<i16>,
+    pub is_default: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ProcessRoutePayload {
+    pub material_id: i64,
+    pub route_code: String,
+    pub route_name: String,
+    pub version: String,
+    pub is_default: Option<i16>,
+    pub status: Option<i16>,
+    pub operations: Value,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProcessRouteDto {
+    pub id: i64,
+    pub material_id: i64,
+    pub route_code: String,
+    pub route_name: String,
+    pub version: String,
+    pub is_default: i16,
+    pub status: i16,
+    pub operations: Value,
     pub remark: Option<String>,
 }
 

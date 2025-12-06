@@ -161,4 +161,222 @@ pub struct ReportDto {
     pub unqualified_quantity: f64,
 }
 
+// ---------- Material Requirements ----------
+
+#[derive(Debug, Deserialize)]
+pub struct MaterialRequirementQuery {
+    pub production_order_id: Option<i64>,
+    pub material_id: Option<i64>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MaterialRequirementPayload {
+    pub production_order_id: i64,
+    pub material_id: i64,
+    pub required_quantity: f64,
+    pub reserved_quantity: Option<f64>,
+    pub issued_quantity: Option<f64>,
+    pub unit: String,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MaterialRequirementDto {
+    pub id: i64,
+    pub production_order_id: i64,
+    pub material_id: i64,
+    pub required_quantity: f64,
+    pub reserved_quantity: f64,
+    pub issued_quantity: f64,
+    pub unit: String,
+    pub remark: Option<String>,
+}
+
+// ---------- Picking Orders ----------
+
+#[derive(Debug, Deserialize)]
+pub struct PickingOrderQuery {
+    pub production_order_id: Option<i64>,
+    pub warehouse_id: Option<i64>,
+    pub order_status: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PickingOrderDetailPayload {
+    pub material_id: i64,
+    pub warehouse_id: i64,
+    pub location_id: Option<i64>,
+    pub batch_no: Option<String>,
+    pub plan_quantity: f64,
+    pub unit: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PickingOrderPayload {
+    pub picking_no: String,
+    pub production_order_id: i64,
+    pub warehouse_id: i64,
+    pub work_order_id: Option<i64>,
+    pub picking_type: i16,
+    pub plan_picking_date: Option<chrono::NaiveDate>,
+    pub remark: Option<String>,
+    pub details: Vec<PickingOrderDetailPayload>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PickingOrderSummaryDto {
+    pub id: i64,
+    pub picking_no: String,
+    pub production_order_id: i64,
+    pub warehouse_id: i64,
+    pub work_order_id: Option<i64>,
+    pub picking_type: i16,
+    pub plan_picking_date: Option<chrono::NaiveDate>,
+    pub actual_picking_date: Option<chrono::NaiveDate>,
+    pub total_quantity: f64,
+    pub order_status: i16,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PickingOrderDetailDto {
+    pub id: i64,
+    pub material_id: i64,
+    pub warehouse_id: i64,
+    pub location_id: Option<i64>,
+    pub batch_no: Option<String>,
+    pub plan_quantity: f64,
+    pub actual_quantity: f64,
+    pub unit: String,
+    pub line_status: i16,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PickingOrderWithDetailsDto {
+    pub header: PickingOrderSummaryDto,
+    pub details: Vec<PickingOrderDetailDto>,
+}
+
+// ---------- Return Orders ----------
+
+#[derive(Debug, Deserialize)]
+pub struct ReturnOrderQuery {
+    pub production_order_id: Option<i64>,
+    pub warehouse_id: Option<i64>,
+    pub order_status: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReturnOrderDetailPayload {
+    pub material_id: i64,
+    pub warehouse_id: i64,
+    pub location_id: Option<i64>,
+    pub batch_no: Option<String>,
+    pub plan_quantity: f64,
+    pub unit: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReturnOrderPayload {
+    pub return_no: String,
+    pub production_order_id: i64,
+    pub warehouse_id: i64,
+    pub work_order_id: Option<i64>,
+    pub return_type: i16,
+    pub plan_return_date: Option<chrono::NaiveDate>,
+    pub remark: Option<String>,
+    pub details: Vec<ReturnOrderDetailPayload>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ReturnOrderSummaryDto {
+    pub id: i64,
+    pub return_no: String,
+    pub production_order_id: i64,
+    pub warehouse_id: i64,
+    pub work_order_id: Option<i64>,
+    pub return_type: i16,
+    pub plan_return_date: Option<chrono::NaiveDate>,
+    pub actual_return_date: Option<chrono::NaiveDate>,
+    pub total_quantity: f64,
+    pub order_status: i16,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ReturnOrderDetailDto {
+    pub id: i64,
+    pub material_id: i64,
+    pub warehouse_id: i64,
+    pub location_id: Option<i64>,
+    pub batch_no: Option<String>,
+    pub plan_quantity: f64,
+    pub actual_quantity: f64,
+    pub unit: String,
+    pub line_status: i16,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ReturnOrderWithDetailsDto {
+    pub header: ReturnOrderSummaryDto,
+    pub details: Vec<ReturnOrderDetailDto>,
+}
+
+// ---------- Production Receipts (完工入库) ----------
+
+#[derive(Debug, Deserialize)]
+pub struct ProductionReceiptQuery {
+    pub production_order_id: Option<i64>,
+    pub warehouse_id: Option<i64>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ProductionReceiptPayload {
+    pub receipt_no: String,
+    pub production_order_id: i64,
+    pub work_order_id: Option<i64>,
+    pub material_id: i64,
+    pub warehouse_id: i64,
+    pub location_id: Option<i64>,
+    pub receipt_type: i16,
+    pub receipt_date: Option<chrono::NaiveDate>,
+    pub quantity: f64,
+    pub qualified_quantity: f64,
+    pub unqualified_quantity: f64,
+    pub unit: String,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProductionReceiptDto {
+    pub id: i64,
+    pub receipt_no: String,
+    pub production_order_id: i64,
+    pub work_order_id: Option<i64>,
+    pub material_id: i64,
+    pub warehouse_id: i64,
+    pub location_id: Option<i64>,
+    pub receipt_type: i16,
+    pub receipt_date: Option<chrono::NaiveDate>,
+    pub quantity: f64,
+    pub qualified_quantity: f64,
+    pub unqualified_quantity: f64,
+    pub unit: String,
+    pub remark: Option<String>,
+}
+
 

@@ -26,6 +26,36 @@ pub fn router() -> axum::Router<ApiContext> {
                 .put(update_inbound_order)
                 .delete(delete_inbound_order),
         )
+        .route(
+            "/warehouse/outbound-orders",
+            get(list_outbound_orders).post(create_outbound_order),
+        )
+        .route(
+            "/warehouse/outbound-orders/:id",
+            get(get_outbound_order)
+                .put(update_outbound_order)
+                .delete(delete_outbound_order),
+        )
+        .route(
+            "/warehouse/transfer-orders",
+            get(list_transfer_orders).post(create_transfer_order),
+        )
+        .route(
+            "/warehouse/transfer-orders/:id",
+            get(get_transfer_order)
+                .put(update_transfer_order)
+                .delete(delete_transfer_order),
+        )
+        .route(
+            "/warehouse/stock-count-orders",
+            get(list_stock_count_orders).post(create_stock_count_order),
+        )
+        .route(
+            "/warehouse/stock-count-orders/:id",
+            get(get_stock_count_order)
+                .put(update_stock_count_order)
+                .delete(delete_stock_count_order),
+        )
 }
 
 async fn list_inventory(

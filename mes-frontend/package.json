@@ -21,7 +21,8 @@
     "@reduxjs/toolkit": "^2.2.0",
     "react-router-dom": "^6.28.0",
     "react-chartjs-2": "^5.2.0",
-    "chart.js": "^4.4.0"
+    "chart.js": "^4.4.0",
+    "dayjs": "^1.11.10"
   },
   "devDependencies": {
     "@vitejs/plugin-react-swc": "^3.7.0",

@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: mes-postgres
+    environment:
+      POSTGRES_USER: mes_user
+      POSTGRES_PASSWORD: mes_password
+      POSTGRES_DB: mes_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./mes-backend/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mes_user -d mes_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mes-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: mes-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mes-network
+
+  # MQTT Broker（可选，用于设备管理）
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: mes-mqtt
+    volumes:
+      - ./mqtt/config:/mosquitto/config
+      - mqtt_data:/mosquitto/data
+      - mqtt_log:/mosquitto/log
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks:
+      - mes-network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./mes-backend
+      dockerfile: Dockerfile
+    container_name: mes-backend
+    environment:
+      SERVER_ADDR: "0.0.0.0:8080"
+      DATABASE_URL: "postgresql://mes_user:mes_password@postgres:5432/mes_db"
+      REDIS_URL: "redis://redis:6379"
+      JWT_SECRET: "${JWT_SECRET:-your-secret-key-change-in-production}"
+      MQTT__DEFAULT_BROKER: "tcp://mqtt:1883"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mes-network
+    restart: unless-stopped
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./mes-frontend
+      dockerfile: Dockerfile
+    container_name: mes-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - mes-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  mqtt_data:
+  mqtt_log:
+
+networks:
+  mes-network:
+    driver: bridge
+
+

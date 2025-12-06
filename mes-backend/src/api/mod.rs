@@ -11,6 +11,7 @@ pub mod warehouse;
 pub mod schedule;
 pub mod auth;
 pub mod system;
+pub mod quality;
 
 #[derive(Clone)]
 pub struct ApiContext {
@@ -35,6 +36,7 @@ pub fn create_router(
         .nest("/", production::router())
         .nest("/", warehouse::router())
         .nest("/", schedule::router())
+        .nest("/", quality::router())
         .with_state(ctx)
 }
 

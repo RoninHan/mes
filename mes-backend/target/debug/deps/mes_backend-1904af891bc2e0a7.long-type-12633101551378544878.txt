@@ -1,0 +1,2 @@
+fn(axum::extract::State<ApiContext>, axum::extract::Path<i64>, axum::Json<model::quality::QualityKpiDto>) -> impl std::future::Future<Output = Result<axum::Json<model::quality::QualityKpiDto>, StatusCode>> {update_quality_kpi}
+fn(axum::extract::State<ApiContext>, axum::extract::Path<i64>, axum::Json<model::quality::QualityKpiDto>) -> impl std::future::Future<Output = Result<axum::Json<model::quality::QualityKpiDto>, StatusCode>> {update_quality_kpi}: Handler<_, ApiContext>

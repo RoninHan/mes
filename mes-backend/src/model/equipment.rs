@@ -96,4 +96,234 @@ pub struct ControlCommandRequest {
     pub param: Option<serde_json::Value>,
 }
 
+// ---------- Maintenance Plans ----------
+
+#[derive(Debug, Deserialize)]
+pub struct MaintenancePlanQuery {
+    pub equipment_id: Option<i64>,
+    pub status: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MaintenancePlanPayload {
+    pub plan_no: String,
+    pub equipment_id: i64,
+    pub plan_type: i16,
+    pub cycle_type: i16,
+    pub cycle_value: i32,
+    pub next_due_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub status: Option<i16>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MaintenancePlanDto {
+    pub id: i64,
+    pub plan_no: String,
+    pub equipment_id: i64,
+    pub plan_type: i16,
+    pub cycle_type: i16,
+    pub cycle_value: i32,
+    pub next_due_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub status: i16,
+    pub remark: Option<String>,
+}
+
+// ---------- Maintenance Tasks ----------
+
+#[derive(Debug, Deserialize)]
+pub struct MaintenanceTaskQuery {
+    pub equipment_id: Option<i64>,
+    pub status: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MaintenanceTaskPayload {
+    pub task_no: String,
+    pub plan_id: Option<i64>,
+    pub equipment_id: i64,
+    pub task_type: i16,
+    pub scheduled_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub start_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub end_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub result: Option<i16>,
+    pub status: Option<i16>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MaintenanceTaskDto {
+    pub id: i64,
+    pub task_no: String,
+    pub plan_id: Option<i64>,
+    pub equipment_id: i64,
+    pub task_type: i16,
+    pub scheduled_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub start_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub end_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub result: Option<i16>,
+    pub status: i16,
+    pub remark: Option<String>,
+}
+
+// ---------- Fault Reports ----------
+
+#[derive(Debug, Deserialize)]
+pub struct FaultReportQuery {
+    pub equipment_id: Option<i64>,
+    pub status: Option<i16>,
+    pub fault_level: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FaultReportPayload {
+    pub fault_no: String,
+    pub equipment_id: i64,
+    pub fault_level: i16,
+    pub occur_time: chrono::DateTime<chrono::Utc>,
+    pub report_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub reporter_id: Option<i64>,
+    pub description: Option<String>,
+    pub status: Option<i16>,
+    pub root_cause: Option<String>,
+    pub solution: Option<String>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FaultReportDto {
+    pub id: i64,
+    pub fault_no: String,
+    pub equipment_id: i64,
+    pub fault_level: i16,
+    pub occur_time: chrono::DateTime<chrono::Utc>,
+    pub report_time: chrono::DateTime<chrono::Utc>,
+    pub reporter_id: Option<i64>,
+    pub description: Option<String>,
+    pub status: i16,
+    pub root_cause: Option<String>,
+    pub solution: Option<String>,
+    pub remark: Option<String>,
+}
+
+// ---------- Repair Orders ----------
+
+#[derive(Debug, Deserialize)]
+pub struct RepairOrderQuery {
+    pub equipment_id: Option<i64>,
+    pub status: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RepairOrderPayload {
+    pub repair_no: String,
+    pub fault_id: Option<i64>,
+    pub equipment_id: i64,
+    pub repair_type: i16,
+    pub start_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub end_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub downtime_minutes: Option<i32>,
+    pub repair_person_id: Option<i64>,
+    pub cost_labor: f64,
+    pub cost_spare_parts: f64,
+    pub status: Option<i16>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RepairOrderDto {
+    pub id: i64,
+    pub repair_no: String,
+    pub fault_id: Option<i64>,
+    pub equipment_id: i64,
+    pub repair_type: i16,
+    pub start_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub end_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub downtime_minutes: Option<i32>,
+    pub repair_person_id: Option<i64>,
+    pub cost_labor: f64,
+    pub cost_spare_parts: f64,
+    pub status: i16,
+    pub remark: Option<String>,
+}
+
+// ---------- Equipment Inspections ----------
+
+#[derive(Debug, Deserialize)]
+pub struct EquipmentInspectionQuery {
+    pub equipment_id: Option<i64>,
+    pub inspection_type: Option<i16>,
+    pub result: Option<i16>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EquipmentInspectionPayload {
+    pub inspection_no: String,
+    pub equipment_id: i64,
+    pub inspection_type: i16,
+    pub inspection_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub inspector_id: Option<i64>,
+    pub result: i16,
+    pub items: Option<serde_json::Value>,
+    pub remark: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EquipmentInspectionDto {
+    pub id: i64,
+    pub inspection_no: String,
+    pub equipment_id: i64,
+    pub inspection_type: i16,
+    pub inspection_time: chrono::DateTime<chrono::Utc>,
+    pub inspector_id: Option<i64>,
+    pub result: i16,
+    pub items: Option<serde_json::Value>,
+    pub remark: Option<String>,
+}
+
+// ---------- Equipment KPI ----------
+
+#[derive(Debug, Deserialize)]
+pub struct EquipmentKpiQuery {
+    pub equipment_id: Option<i64>,
+    #[serde(default = "default_page")]
+    pub page: u64,
+    #[serde(default = "default_page_size")]
+    pub page_size: u64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EquipmentKpiDto {
+    pub id: i64,
+    pub equipment_id: i64,
+    pub stat_date: chrono::NaiveDate,
+    pub runtime_minutes: Option<i32>,
+    pub downtime_minutes: Option<i32>,
+    pub fault_count: Option<i32>,
+    pub mtbf_minutes: Option<i32>,
+    pub mttr_minutes: Option<i32>,
+    pub oee: Option<f64>,
+    pub remark: Option<String>,
+}
+
 
