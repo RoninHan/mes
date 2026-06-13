@@ -1,5 +1,7 @@
 use crate::api::ApiContext;
 use crate::db::dao;
+use crate::db::entity;
+use crate::db::entity::production_schedules;
 use crate::model::schedule::*;
 use axum::{
     extract::{Path, Query, State},
@@ -225,7 +227,7 @@ async fn run_auto_schedule(
 
     for wo in work_orders {
         // 检查是否已有排程
-        let existing = entity::ProductionSchedules::find()
+        let existing = production_schedules::Entity::find()
             .filter(production_schedules::Column::WorkOrderId.eq(wo.id))
             .one(ctx.db.conn())
             .await

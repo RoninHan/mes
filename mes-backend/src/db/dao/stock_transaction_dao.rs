@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<stock_transactions::Model>, u64)> {
-    let mut query = entity::StockTransactions::find()
+    let mut query = stock_transactions::Entity::find()
         .filter(stock_transactions::Column::IsDeleted.eq(0));
 
     if let Some(m) = filter.material_id {

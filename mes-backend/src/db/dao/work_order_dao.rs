@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<work_orders::Model>, u64)> {
-    let mut query = entity::WorkOrders::find();
+    let mut query = work_orders::Entity::find();
 
     if let Some(status) = filter.work_order_status {
         query = query.filter(work_orders::Column::WorkOrderStatus.eq(status));
@@ -27,7 +27,7 @@ pub async fn list(
     }
     if let Some(keyword) = filter.keyword {
         let like = format!("%{}%", keyword);
-        query = query.filter(work_orders::Column::WorkOrderNo.ilike(like));
+        query = query.filter(work_orders::Column::WorkOrderNo.like(like));
     }
 
     query = query.order_by_desc(work_orders::Column::Id);
@@ -39,15 +39,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<work_orders::Model>> {
-    Ok(entity::WorkOrders::find_by_id(id).one(conn).await?)
+    Ok(work_orders::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: work_orders::ActiveModel,
 ) -> Result<work_orders::Model> {
-    Ok(entity::WorkOrders::insert(active)
-        .exec_with_returning(conn)
+    Ok(work_orders::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -57,14 +57,14 @@ pub async fn update(
     mut active: work_orders::ActiveModel,
 ) -> Result<Option<work_orders::Model>> {
     active.id = Set(id);
-    let updated = entity::WorkOrders::update(active)
-        .exec_with_returning(conn)
+    let updated = work_orders::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::WorkOrders::delete_by_id(id).exec(conn).await?;
+    let res = work_orders::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

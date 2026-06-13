@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<locations::Model>, u64)> {
-    let mut query = entity::Locations::find().filter(locations::Column::IsDeleted.eq(0));
+    let mut query = locations::Entity::find().filter(locations::Column::IsDeleted.eq(0));
 
     if let Some(warehouse_id) = filter.warehouse_id {
         query = query.filter(locations::Column::WarehouseId.eq(warehouse_id));
@@ -29,8 +29,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         query = query.filter(
             locations::Column::LocationName
-                .ilike(like.clone())
-                .or(locations::Column::LocationCode.ilike(like)),
+                .like(like.clone())
+                .or(locations::Column::LocationCode.like(like)),
         );
     }
 
@@ -43,7 +43,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<locations::Model>> {
-    Ok(entity::Locations::find_by_id(id)
+    Ok(locations::Entity::find_by_id(id)
         .filter(locations::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -53,8 +53,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: locations::ActiveModel,
 ) -> Result<locations::Model> {
-    Ok(entity::Locations::insert(active)
-        .exec_with_returning(conn)
+    Ok(locations::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -68,7 +68,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active: locations::ActiveModel = entity::Locations::find_by_id(id)
+    let mut active: locations::ActiveModel = locations::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Location not found"))?

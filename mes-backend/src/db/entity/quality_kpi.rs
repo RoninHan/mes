@@ -1,10 +1,6 @@
-use sea_orm::entity::prelude::*;
-use sea_orm::Decimal;
-
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "quality_kpi")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    
     pub id: i64,
     pub kpi_date: Date,
     pub kpi_type: i16, // 1:日报, 2:周报, 3:月报
@@ -43,20 +39,8 @@ pub struct Model {
     pub sigma_level: Option<Decimal>,
     pub remark: Option<String>,
     pub created_by: Option<i64>,
-    pub created_time: DateTimeWithTimeZone,
+    pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
-    pub updated_time: DateTimeWithTimeZone,
+    pub updated_time: chrono::DateTime<chrono::Utc>,
 }
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No relations")
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
-
 

@@ -16,7 +16,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<workshops::Model>, u64)> {
-    let mut query = entity::Workshops::find().filter(workshops::Column::IsDeleted.eq(0));
+    let mut query = workshops::Entity::find().filter(workshops::Column::IsDeleted.eq(0));
 
     if let Some(status) = filter.status {
         query = query.filter(workshops::Column::Status.eq(status));
@@ -25,8 +25,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         query = query.filter(
             workshops::Column::WorkshopName
-                .ilike(like.clone())
-                .or(workshops::Column::WorkshopCode.ilike(like)),
+                .like(like.clone())
+                .or(workshops::Column::WorkshopCode.like(like)),
         );
     }
 
@@ -39,7 +39,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<workshops::Model>> {
-    Ok(entity::Workshops::find_by_id(id)
+    Ok(workshops::Entity::find_by_id(id)
         .filter(workshops::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -49,8 +49,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: workshops::ActiveModel,
 ) -> Result<workshops::Model> {
-    Ok(entity::Workshops::insert(active)
-        .exec_with_returning(conn)
+    Ok(workshops::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -64,7 +64,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active: workshops::ActiveModel = entity::Workshops::find_by_id(id)
+    let mut active: workshops::ActiveModel = workshops::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Workshop not found"))?

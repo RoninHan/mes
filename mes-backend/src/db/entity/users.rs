@@ -1,9 +1,6 @@
-use sea_orm::entity::prelude::*;
-
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "users")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    
     pub id: i64,
     pub username: String,
     pub password: String,
@@ -18,27 +15,15 @@ pub struct Model {
     pub status: i8,
     pub is_locked: i8,
     pub lock_reason: Option<String>,
-    pub pwd_update_time: Option<DateTimeWithTimeZone>,
-    pub last_login_time: Option<DateTimeWithTimeZone>,
+    pub pwd_update_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub last_login_time: Option<chrono::DateTime<chrono::Utc>>,
     pub last_login_ip: Option<String>,
     pub login_fail_count: i32,
     pub remark: Option<String>,
     pub created_by: Option<i64>,
-    pub created_time: DateTimeWithTimeZone,
+    pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
-    pub updated_time: DateTimeWithTimeZone,
+    pub updated_time: chrono::DateTime<chrono::Utc>,
     pub is_deleted: i8,
 }
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No relation")
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
-
 

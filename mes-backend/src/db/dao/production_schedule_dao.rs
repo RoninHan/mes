@@ -17,7 +17,7 @@ pub async fn list_by_window(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<production_schedules::Model>, u64)> {
-    let mut q = entity::ProductionSchedules::find();
+    let mut q = production_schedules::Entity::find();
 
     if let Some(ws) = filter.workshop_id {
         q = q.filter(production_schedules::Column::WorkshopId.eq(ws));
@@ -45,7 +45,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i32,
 ) -> Result<Option<production_schedules::Model>> {
-    Ok(entity::ProductionSchedules::find_by_id(id)
+    Ok(production_schedules::Entity::find_by_id(id)
         .one(conn)
         .await?)
 }
@@ -60,8 +60,8 @@ pub async fn create(
     if active.priority.is_not_set() {
         active.priority = Set(3);
     }
-    Ok(entity::ProductionSchedules::insert(active)
-        .exec_with_returning(conn)
+    Ok(production_schedules::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -71,14 +71,14 @@ pub async fn update(
     mut active: production_schedules::ActiveModel,
 ) -> Result<Option<production_schedules::Model>> {
     active.id = Set(id);
-    let updated = entity::ProductionSchedules::update(active)
-        .exec_with_returning(conn)
+    let updated = production_schedules::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i32) -> Result<u64> {
-    let res = entity::ProductionSchedules::delete_by_id(id)
+    let res = production_schedules::Entity::delete_by_id(id)
         .exec(conn)
         .await?;
     Ok(res.rows_affected)

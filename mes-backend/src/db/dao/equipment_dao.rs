@@ -16,7 +16,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment::Model>, u64)> {
-    let mut query = entity::Equipment::find();
+    let mut query = equipment::Entity::find();
 
     if let Some(s) = filter.status {
         query = query.filter(equipment::Column::Status.eq(s));
@@ -31,14 +31,19 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i32) -> Result<Option<equipment::Model>> {
-    Ok(entity::Equipment::find_by_id(id).one(conn).await?)
+    Ok(equipment::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     model: equipment::ActiveModel,
 ) -> Result<equipment::Model> {
-    Ok(entity::Equipment::insert(model).exec_with_returning(conn).await?)
+    let result = equipment::Entity::insert(model).exec(conn).await?;
+    let model = equipment::Entity::find_by_id(result.last_insert_id)
+        .one(conn)
+        .await?
+        .unwrap();
+    Ok(model)
 }
 
 pub async fn update(
@@ -47,12 +52,12 @@ pub async fn update(
     mut data: equipment::ActiveModel,
 ) -> Result<Option<equipment::Model>> {
     data.id = Set(id);
-    let updated = entity::Equipment::update(data).exec_with_returning(conn).await?;
+    let updated = equipment::Entity::update(data).exec(conn).await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i32) -> Result<u64> {
-    let res = entity::Equipment::delete_by_id(id).exec(conn).await?;
+    let res = equipment::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 
@@ -60,7 +65,7 @@ pub async fn get_mqtt_config_by_equipment_id(
     conn: ConnRef<'_>,
     equipment_id: i32,
 ) -> Result<Option<equipment_mqtt_config::Model>> {
-    Ok(entity::EquipmentMqttConfig::find()
+    Ok(equipment_mqtt_config::Entity::find()
         .filter(equipment_mqtt_config::Column::EquipmentId.eq(equipment_id))
         .one(conn)
         .await?)
@@ -75,13 +80,16 @@ pub async fn upsert_mqtt_config(
 
     if let Some(existing) = get_mqtt_config_by_equipment_id(conn, equipment_id).await? {
         data.id = Set(existing.id);
-        Ok(entity::EquipmentMqttConfig::update(data)
-            .exec_with_returning(conn)
+        Ok(equipment_mqtt_config::Entity::update(data)
+            .exec(conn)
             .await?)
     } else {
-        Ok(entity::EquipmentMqttConfig::insert(data)
-            .exec_with_returning(conn)
-            .await?)
+        let result = equipment_mqtt_config::Entity::insert(data).exec(conn).await?;
+        let model = equipment_mqtt_config::Entity::find_by_id(result.last_insert_id)
+            .one(conn)
+            .await?
+            .unwrap();
+        Ok(model)
     }
 }
 
@@ -106,9 +114,12 @@ pub async fn append_status_log(
     }
     active.log_time = Set(now.into());
 
-    Ok(entity::EquipmentStatusLog::insert(active)
-        .exec_with_returning(conn)
-        .await?)
+    let result = equipment_status_log::Entity::insert(active).exec(conn).await?;
+    let model = equipment_status_log::Entity::find_by_id(result.last_insert_id)
+        .one(conn)
+        .await?
+        .unwrap();
+    Ok(model)
 }
 
 

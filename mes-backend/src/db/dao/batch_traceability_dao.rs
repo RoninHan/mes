@@ -14,7 +14,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<batch_traceability::Model>, u64)> {
-    let mut query = entity::BatchTraceability::find()
+    let mut query = batch_traceability::Entity::find()
         .filter(batch_traceability::Column::IsDeleted.eq(0));
 
     if let Some(m) = filter.material_id {

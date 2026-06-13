@@ -14,7 +14,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<supplier_quality_evaluations::Model>, u64)> {
-    let mut query = entity::SupplierQualityEvaluations::find();
+    let mut query = supplier_quality_evaluations::Entity::find();
 
     if let Some(supplier_id) = filter.supplier_id {
         query = query.filter(supplier_quality_evaluations::Column::SupplierId.eq(supplier_id));
@@ -34,7 +34,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<supplier_quality_evaluations::Model>> {
-    Ok(entity::SupplierQualityEvaluations::find_by_id(id)
+    Ok(supplier_quality_evaluations::Entity::find_by_id(id)
         .filter(supplier_quality_evaluations::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -44,8 +44,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: supplier_quality_evaluations::ActiveModel,
 ) -> Result<supplier_quality_evaluations::Model> {
-    Ok(entity::SupplierQualityEvaluations::insert(active)
-        .exec_with_returning(conn)
+    Ok(supplier_quality_evaluations::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -59,7 +59,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: supplier_quality_evaluations::ActiveModel = entity::SupplierQualityEvaluations::find_by_id(id)
+    let mut active_model: supplier_quality_evaluations::ActiveModel = supplier_quality_evaluations::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Evaluation not found"))?

@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<stock_reservations::Model>, u64)> {
-    let mut query = entity::StockReservations::find()
+    let mut query = stock_reservations::Entity::find()
         .filter(stock_reservations::Column::IsDeleted.eq(0));
 
     if let Some(m) = filter.material_id {
@@ -40,7 +40,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<stock_reservations::Model>> {
-    Ok(entity::StockReservations::find_by_id(id)
+    Ok(stock_reservations::Entity::find_by_id(id)
         .filter(stock_reservations::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -50,8 +50,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: stock_reservations::ActiveModel,
 ) -> Result<stock_reservations::Model> {
-    Ok(entity::StockReservations::insert(active)
-        .exec_with_returning(conn)
+    Ok(stock_reservations::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -62,17 +62,17 @@ pub async fn update(
 ) -> Result<Option<stock_reservations::Model>> {
     active.id = Set(id);
     Ok(Some(
-        entity::StockReservations::update(active)
-            .exec_with_returning(conn)
+        stock_reservations::Entity::update(active)
+            .exec(conn)
             .await?,
     ))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::StockReservations::update_many()
+    let res = stock_reservations::Entity::update_many()
         .col_expr(
             stock_reservations::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(stock_reservations::Column::Id.eq(id))
         .exec(conn)

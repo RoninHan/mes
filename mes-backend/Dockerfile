@@ -1,5 +1,5 @@
 # 多阶段构建：构建阶段
-FROM rust:1.75-slim as builder
+FROM rust:1.88-slim as builder
 
 WORKDIR /app
 
@@ -7,6 +7,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
+    curl \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件

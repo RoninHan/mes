@@ -446,6 +446,30 @@ pub struct QualityKpiQuery {
     pub page_size: u64,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct QualityKpiPayload {
+    pub kpi_date: chrono::NaiveDate,
+    pub kpi_type: i16,
+    pub dept_id: Option<i64>,
+    pub workshop_id: Option<i64>,
+    pub batch_qualified_rate: f64,
+    pub quantity_qualified_rate: f64,
+    pub first_pass_yield: f64,
+    pub iqc_qualified_rate: f64,
+    pub ipqc_qualified_rate: f64,
+    pub fqc_qualified_rate: f64,
+    pub oqc_qualified_rate: f64,
+    pub rework_rate: f64,
+    pub scrap_rate: f64,
+    pub complaint_rate: f64,
+    pub ncr_count: i32,
+    pub total_quality_cost: f64,
+    pub quality_cost_rate: f64,
+    pub dppm: f64,
+    pub cpk: Option<f64>,
+    pub sigma_level: Option<f64>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct QualityKpiDto {
     pub id: i64,

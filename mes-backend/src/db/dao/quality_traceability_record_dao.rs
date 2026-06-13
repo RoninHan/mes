@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<quality_traceability_records::Model>, u64)> {
-    let mut query = entity::QualityTraceabilityRecords::find();
+    let mut query = quality_traceability_records::Entity::find();
 
     if let Some(material_id) = filter.material_id {
         query = query.filter(quality_traceability_records::Column::MaterialId.eq(material_id));
@@ -38,7 +38,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<quality_traceability_records::Model>> {
-    Ok(entity::QualityTraceabilityRecords::find_by_id(id)
+    Ok(quality_traceability_records::Entity::find_by_id(id)
         .filter(quality_traceability_records::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -48,8 +48,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: quality_traceability_records::ActiveModel,
 ) -> Result<quality_traceability_records::Model> {
-    Ok(entity::QualityTraceabilityRecords::insert(active)
-        .exec_with_returning(conn)
+    Ok(quality_traceability_records::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -63,7 +63,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: quality_traceability_records::ActiveModel = entity::QualityTraceabilityRecords::find_by_id(id)
+    let mut active_model: quality_traceability_records::ActiveModel = quality_traceability_records::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Record not found"))?

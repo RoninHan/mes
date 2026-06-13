@@ -1,11 +1,11 @@
 use crate::db::entity::{self, role_permissions, ConnRef};
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set, TransactionTrait};
+use sea_orm::{prelude::*, ColumnTrait, EntityTrait, QueryFilter, Set, TransactionTrait};
 
 pub async fn list_permissions_for_role(
     conn: ConnRef<'_>,
     role_id: i64,
-) -> sea_orm::DbResult<Vec<role_permissions::Model>> {
-    entity::RolePermissions::find()
+) -> Result<Vec<role_permissions::Model>, DbErr> {
+    role_permissions::Entity::find()
         .filter(role_permissions::Column::RoleId.eq(role_id))
         .all(conn)
 }
@@ -15,9 +15,9 @@ pub async fn replace_role_permissions(
     role_id: i64,
     perm_ids: &[i64],
     operator_id: i64,
-) -> sea_orm::DbResult<()> {
+) -> Result<(), DbErr> {
     let txn = conn.begin().await?;
-    entity::RolePermissions::delete_many()
+    role_permissions::Entity::delete_many()
         .filter(role_permissions::Column::RoleId.eq(role_id))
         .exec(&txn)
         .await?;
@@ -28,7 +28,7 @@ pub async fn replace_role_permissions(
             created_by: Set(Some(operator_id)),
             ..Default::default()
         };
-        entity::RolePermissions::insert(active).exec(&txn).await?;
+        role_permissions::Entity::insert(active).exec(&txn).await?;
     }
     txn.commit().await
 }

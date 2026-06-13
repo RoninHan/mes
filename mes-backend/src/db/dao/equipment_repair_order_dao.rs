@@ -1,6 +1,7 @@
 use crate::db::entity::{self, equipment_repair_orders, ConnRef};
 use anyhow::Result;
 use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set};
+use sea_orm_migration::sea_query::Expr;
 
 #[derive(Debug)]
 pub struct RepairOrderFilter {
@@ -14,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment_repair_orders::Model>, u64)> {
-    let mut query = entity::EquipmentRepairOrders::find()
+    let mut query = equipment_repair_orders::Entity::find()
         .filter(equipment_repair_orders::Column::IsDeleted.eq(0));
 
     if let Some(eid) = filter.equipment_id {
@@ -36,7 +37,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<equipment_repair_orders::Model>> {
-    Ok(entity::EquipmentRepairOrders::find_by_id(id)
+    Ok(equipment_repair_orders::Entity::find_by_id(id)
         .filter(equipment_repair_orders::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -46,8 +47,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_repair_orders::ActiveModel,
 ) -> Result<equipment_repair_orders::Model> {
-    Ok(entity::EquipmentRepairOrders::insert(active)
-        .exec_with_returning(conn)
+    Ok(equipment_repair_orders::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -58,17 +59,17 @@ pub async fn update(
 ) -> Result<Option<equipment_repair_orders::Model>> {
     active.id = Set(id);
     Ok(Some(
-        entity::EquipmentRepairOrders::update(active)
-            .exec_with_returning(conn)
+        equipment_repair_orders::Entity::update(active)
+            .exec(conn)
             .await?,
     ))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::EquipmentRepairOrders::update_many()
+    let res = equipment_repair_orders::Entity::update_many()
         .col_expr(
             equipment_repair_orders::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(equipment_repair_orders::Column::Id.eq(id))
         .exec(conn)

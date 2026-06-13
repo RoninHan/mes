@@ -1,6 +1,7 @@
 use crate::db::entity::{self, equipment_inspections, ConnRef};
 use anyhow::Result;
 use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set};
+use sea_orm_migration::sea_query::Expr;
 
 #[derive(Debug)]
 pub struct EquipmentInspectionFilter {
@@ -15,7 +16,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment_inspections::Model>, u64)> {
-    let mut query = entity::EquipmentInspections::find()
+    let mut query = equipment_inspections::Entity::find()
         .filter(equipment_inspections::Column::IsDeleted.eq(0));
 
     if let Some(eid) = filter.equipment_id {
@@ -40,7 +41,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<equipment_inspections::Model>> {
-    Ok(entity::EquipmentInspections::find_by_id(id)
+    Ok(equipment_inspections::Entity::find_by_id(id)
         .filter(equipment_inspections::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -50,8 +51,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_inspections::ActiveModel,
 ) -> Result<equipment_inspections::Model> {
-    Ok(entity::EquipmentInspections::insert(active)
-        .exec_with_returning(conn)
+    Ok(equipment_inspections::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -62,17 +63,17 @@ pub async fn update(
 ) -> Result<Option<equipment_inspections::Model>> {
     active.id = Set(id);
     Ok(Some(
-        entity::EquipmentInspections::update(active)
-            .exec_with_returning(conn)
+        equipment_inspections::Entity::update(active)
+            .exec(conn)
             .await?,
     ))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::EquipmentInspections::update_many()
+    let res = equipment_inspections::Entity::update_many()
         .col_expr(
             equipment_inspections::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(equipment_inspections::Column::Id.eq(id))
         .exec(conn)

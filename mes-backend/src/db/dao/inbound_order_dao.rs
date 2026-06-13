@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<inbound_orders::Model>, u64)> {
-    let mut query = entity::InboundOrders::find();
+    let mut query = inbound_orders::Entity::find();
 
     if let Some(w) = filter.warehouse_id {
         query = query.filter(inbound_orders::Column::WarehouseId.eq(w));
@@ -41,9 +41,9 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<(inbound_orders::Model, Vec<inbound_order_details::Model>)>> {
-    if let Some(order) = entity::InboundOrders::find_by_id(id).one(conn).await? {
+    if let Some(order) = inbound_orders::Entity::find_by_id(id).one(conn).await? {
         let details = order
-            .find_related(entity::InboundOrderDetails)
+            .find_related(inbound_order_details::Entity)
             .all(conn)
             .await?;
         Ok(Some((order, details)))
@@ -64,14 +64,14 @@ pub async fn create(
 ) -> Result<(inbound_orders::Model, Vec<inbound_order_details::Model>)> {
     let txn = conn.begin().await?;
 
-    let order = entity::InboundOrders::insert(payload.order)
+    let order = inbound_orders::Entity::insert(payload.order)
         .exec_with_returning(&txn)
         .await?;
 
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.inbound_order_id = Set(order.id);
-        let m = entity::InboundOrderDetails::insert(d)
+        let m = inbound_order_details::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -89,19 +89,19 @@ pub async fn update(
     let txn = conn.begin().await?;
 
     // ensure exists
-    if entity::InboundOrders::find_by_id(id).one(&txn).await?.is_none() {
+    if inbound_orders::Entity::find_by_id(id).one(&txn).await?.is_none() {
         txn.rollback().await?;
         return Ok(None);
     }
 
     let mut order_active = payload.order;
     order_active.id = Set(id);
-    let order = entity::InboundOrders::update(order_active)
+    let order = inbound_orders::Entity::update(order_active)
         .exec_with_returning(&txn)
         .await?;
 
     // simple strategy: delete all details and re-insert
-    entity::InboundOrderDetails::delete_many()
+    inbound_order_details::Entity::delete_many()
         .filter(inbound_order_details::Column::InboundOrderId.eq(id))
         .exec(&txn)
         .await?;
@@ -109,7 +109,7 @@ pub async fn update(
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.inbound_order_id = Set(order.id);
-        let m = entity::InboundOrderDetails::insert(d)
+        let m = inbound_order_details::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -122,12 +122,12 @@ pub async fn update(
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
     let txn = conn.begin().await?;
 
-    entity::InboundOrderDetails::delete_many()
+    inbound_order_details::Entity::delete_many()
         .filter(inbound_order_details::Column::InboundOrderId.eq(id))
         .exec(&txn)
         .await?;
 
-    let res = entity::InboundOrders::delete_by_id(id).exec(&txn).await?;
+    let res = inbound_orders::Entity::delete_by_id(id).exec(&txn).await?;
     txn.commit().await?;
     Ok(res.rows_affected)
 }

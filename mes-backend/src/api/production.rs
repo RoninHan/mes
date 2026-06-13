@@ -6,7 +6,7 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use rust_decimal::prelude::FromPrimitive;
+use num_traits::cast::{FromPrimitive, ToPrimitive};
 use sea_orm::prelude::Decimal;
 use sea_orm::ActiveValue::Set;
 

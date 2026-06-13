@@ -16,7 +16,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<customer_complaints::Model>, u64)> {
-    let mut query = entity::CustomerComplaints::find();
+    let mut query = customer_complaints::Entity::find();
 
     if let Some(customer_id) = filter.customer_id {
         query = query.filter(customer_complaints::Column::CustomerId.eq(customer_id));
@@ -42,7 +42,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<customer_complaints::Model>> {
-    Ok(entity::CustomerComplaints::find_by_id(id)
+    Ok(customer_complaints::Entity::find_by_id(id)
         .filter(customer_complaints::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -52,8 +52,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: customer_complaints::ActiveModel,
 ) -> Result<customer_complaints::Model> {
-    Ok(entity::CustomerComplaints::insert(active)
-        .exec_with_returning(conn)
+    Ok(customer_complaints::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -67,7 +67,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: customer_complaints::ActiveModel = entity::CustomerComplaints::find_by_id(id)
+    let mut active_model: customer_complaints::ActiveModel = customer_complaints::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Complaint not found"))?

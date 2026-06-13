@@ -1,9 +1,6 @@
-use sea_orm::entity::prelude::*;
-
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "production_orders")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    
     pub id: i64,
     pub order_no: String,
     pub plan_id: Option<i64>,
@@ -21,8 +18,8 @@ pub struct Model {
     pub priority: i8,
     pub plan_start_date: Date,
     pub plan_end_date: Date,
-    pub actual_start_date: Option<Date>,
-    pub actual_end_date: Option<Date>,
+    pub actual_start_date: Option<chrono::NaiveDate>,
+    pub actual_end_date: Option<chrono::NaiveDate>,
     pub workshop_id: Option<i64>,
     pub production_line: Option<String>,
     pub batch_no: Option<String>,
@@ -36,21 +33,9 @@ pub struct Model {
     pub planner_id: Option<i64>,
     pub remark: Option<String>,
     pub created_by: Option<i64>,
-    pub created_time: DateTimeWithTimeZone,
+    pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
-    pub updated_time: DateTimeWithTimeZone,
+    pub updated_time: chrono::DateTime<chrono::Utc>,
     pub is_deleted: i8,
 }
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No Relation")
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
-
 

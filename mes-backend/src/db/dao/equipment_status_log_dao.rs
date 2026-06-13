@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment_status_log::Model>, u64)> {
-    let mut query = entity::EquipmentStatusLog::find();
+    let mut query = equipment_status_log::Entity::find();
 
     if let Some(eq_id) = filter.equipment_id {
         query = query.filter(equipment_status_log::Column::EquipmentId.eq(eq_id));

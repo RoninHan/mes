@@ -11,8 +11,26 @@ export default function EquipmentControl() {
       message.warning("请先输入设备ID");
       return;
     }
-    await sendControlCommand(equipmentId, { command, param });
-    message.success("指令已发送");
+    let parsedParam = param;
+    if (typeof param === "string" && param.trim()) {
+      try {
+        parsedParam = JSON.parse(param);
+      } catch {
+        // 保持原样字符串，后端会按原值透传
+      }
+    }
+
+    try {
+      const res = await sendControlCommand(equipmentId, { command, param: parsedParam });
+      if (res?.delivered) {
+        message.success(res?.message || "指令已发送");
+      } else {
+        message.warning(res?.message || "命令未实际下发");
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "发送失败";
+      message.error(msg);
+    }
   };
 
   return (

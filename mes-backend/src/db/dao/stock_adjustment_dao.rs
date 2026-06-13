@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<stock_adjustments::Model>, u64)> {
-    let mut query = entity::StockAdjustments::find()
+    let mut query = stock_adjustments::Entity::find()
         .filter(stock_adjustments::Column::IsDeleted.eq(0));
 
     if let Some(w) = filter.warehouse_id {
@@ -40,7 +40,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<stock_adjustments::Model>> {
-    Ok(entity::StockAdjustments::find_by_id(id)
+    Ok(stock_adjustments::Entity::find_by_id(id)
         .filter(stock_adjustments::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -50,8 +50,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: stock_adjustments::ActiveModel,
 ) -> Result<stock_adjustments::Model> {
-    Ok(entity::StockAdjustments::insert(active)
-        .exec_with_returning(conn)
+    Ok(stock_adjustments::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -62,17 +62,17 @@ pub async fn update(
 ) -> Result<Option<stock_adjustments::Model>> {
     active.id = Set(id);
     Ok(Some(
-        entity::StockAdjustments::update(active)
-            .exec_with_returning(conn)
+        stock_adjustments::Entity::update(active)
+            .exec(conn)
             .await?,
     ))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::StockAdjustments::update_many()
+    let res = stock_adjustments::Entity::update_many()
         .col_expr(
             stock_adjustments::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(stock_adjustments::Column::Id.eq(id))
         .exec(conn)

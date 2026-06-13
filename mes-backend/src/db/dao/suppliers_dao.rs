@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<suppliers::Model>, u64)> {
-    let mut query = entity::Suppliers::find();
+    let mut query = suppliers::Entity::find();
 
     if let Some(t) = filter.supplier_type {
         query = query.filter(suppliers::Column::SupplierType.eq(t));
@@ -29,8 +29,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         query = query.filter(
             suppliers::Column::SupplierName
-                .ilike(like.clone())
-                .or(suppliers::Column::SupplierCode.ilike(like)),
+                .like(like.clone())
+                .or(suppliers::Column::SupplierCode.like(like)),
         );
     }
 
@@ -43,15 +43,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<suppliers::Model>> {
-    Ok(entity::Suppliers::find_by_id(id).one(conn).await?)
+    Ok(suppliers::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: suppliers::ActiveModel,
 ) -> Result<suppliers::Model> {
-    Ok(entity::Suppliers::insert(active)
-        .exec_with_returning(conn)
+    Ok(suppliers::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -61,14 +61,14 @@ pub async fn update(
     mut active: suppliers::ActiveModel,
 ) -> Result<Option<suppliers::Model>> {
     active.id = Set(id);
-    let updated = entity::Suppliers::update(active)
-        .exec_with_returning(conn)
+    let updated = suppliers::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::Suppliers::delete_by_id(id).exec(conn).await?;
+    let res = suppliers::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

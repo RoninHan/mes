@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<transfer_orders::Model>, u64)> {
-    let mut query = entity::TransferOrders::find()
+    let mut query = transfer_orders::Entity::find()
         .filter(transfer_orders::Column::IsDeleted.eq(0));
 
     if let Some(w) = filter.from_warehouse_id {
@@ -42,13 +42,13 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<(transfer_orders::Model, Vec<transfer_order_lines::Model>)>> {
-    if let Some(order) = entity::TransferOrders::find_by_id(id)
+    if let Some(order) = transfer_orders::Entity::find_by_id(id)
         .filter(transfer_orders::Column::IsDeleted.eq(0))
         .one(conn)
         .await?
     {
         let details = order
-            .find_related(entity::TransferOrderLines)
+            .find_related(transfer_order_lines::Entity)
             .filter(transfer_order_lines::Column::IsDeleted.eq(0))
             .all(conn)
             .await?;
@@ -70,14 +70,14 @@ pub async fn create(
 ) -> Result<(transfer_orders::Model, Vec<transfer_order_lines::Model>)> {
     let txn = conn.begin().await?;
 
-    let order = entity::TransferOrders::insert(payload.order)
+    let order = transfer_orders::Entity::insert(payload.order)
         .exec_with_returning(&txn)
         .await?;
 
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.transfer_id = Set(order.id);
-        let m = entity::TransferOrderLines::insert(d)
+        let m = transfer_order_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -94,7 +94,7 @@ pub async fn update(
 ) -> Result<Option<(transfer_orders::Model, Vec<transfer_order_lines::Model>)>> {
     let txn = conn.begin().await?;
 
-    if entity::TransferOrders::find_by_id(id)
+    if transfer_orders::Entity::find_by_id(id)
         .filter(transfer_orders::Column::IsDeleted.eq(0))
         .one(&txn)
         .await?
@@ -106,14 +106,14 @@ pub async fn update(
 
     let mut order_active = payload.order;
     order_active.id = Set(id);
-    let order = entity::TransferOrders::update(order_active)
+    let order = transfer_orders::Entity::update(order_active)
         .exec_with_returning(&txn)
         .await?;
 
-    entity::TransferOrderLines::update_many()
+    transfer_order_lines::Entity::update_many()
         .col_expr(
             transfer_order_lines::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(transfer_order_lines::Column::TransferId.eq(id))
         .exec(&txn)
@@ -122,7 +122,7 @@ pub async fn update(
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.transfer_id = Set(order.id);
-        let m = entity::TransferOrderLines::insert(d)
+        let m = transfer_order_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -135,17 +135,17 @@ pub async fn update(
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
     let txn = conn.begin().await?;
 
-    entity::TransferOrderLines::update_many()
+    transfer_order_lines::Entity::update_many()
         .col_expr(
             transfer_order_lines::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(transfer_order_lines::Column::TransferId.eq(id))
         .exec(&txn)
         .await?;
 
-    let res = entity::TransferOrders::update_many()
-        .col_expr(transfer_orders::Column::IsDeleted, sea_orm::Expr::value(1))
+    let res = transfer_orders::Entity::update_many()
+        .col_expr(transfer_orders::Column::IsDeleted, sea_orm_migration::sea_query::Expr::value(1))
         .filter(transfer_orders::Column::Id.eq(id))
         .exec(&txn)
         .await?;

@@ -1,10 +1,6 @@
-use sea_orm::entity::prelude::*;
-use sea_orm::Decimal;
-
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "nonconforming_products")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    
     pub id: i64,
     pub ncr_no: String,
     pub report_id: Option<i64>,
@@ -27,14 +23,14 @@ pub struct Model {
     pub defect_location: Option<String>,
     pub defect_images: Option<String>, // JSON format
     pub found_date: Date,
-    pub found_time: DateTimeWithTimeZone,
+    pub found_time: chrono::DateTime<chrono::Utc>,
     pub finder_id: i64,
     pub responsible_dept_id: Option<i64>,
     pub responsible_person_id: Option<i64>,
     pub root_cause: Option<String>,
     pub disposition: Option<i16>, // 1:返工, 2:报废, 3:让步接收, 4:退货, 5:降级使用, 6:挑选
     pub disposition_quantity: Decimal,
-    pub disposition_date: Option<Date>,
+    pub disposition_date: Option<chrono::NaiveDate>,
     pub disposition_handler_id: Option<i64>,
     pub disposition_result: Option<String>,
     pub rework_order_no: Option<String>,
@@ -42,24 +38,12 @@ pub struct Model {
     pub preventive_action: Option<String>,
     pub ncr_status: i16, // 1:待处置, 2:处置中, 3:已处置, 4:已验证, 5:已关闭
     pub is_repetitive: i16,
-    pub closure_date: Option<Date>,
+    pub closure_date: Option<chrono::NaiveDate>,
     pub remark: Option<String>,
     pub created_by: Option<i64>,
-    pub created_time: DateTimeWithTimeZone,
+    pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
-    pub updated_time: DateTimeWithTimeZone,
+    pub updated_time: chrono::DateTime<chrono::Utc>,
     pub is_deleted: i16,
 }
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No relations")
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
-
 

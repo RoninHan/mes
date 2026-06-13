@@ -1,10 +1,10 @@
 use crate::cache::{RedisCache, EQUIPMENT_STATUS_KEY_PREFIX};
 use anyhow::Result;
 use redis::AsyncCommands;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tracing::error;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EquipmentStatusPayload {
     pub equipment_id: i64,
     pub status: i16,

@@ -1,202 +1,88 @@
+//! 系统管理接口（审计日志 + 关联应用地址配置）
+//!
+//! 注意：用户管理已统一由 SSO 负责，本模块不再提供用户 CRUD。
+//! 仅保留 MES 自己产生的登录日志和操作审计日志，以及关联系统地址配置。
+
+use std::sync::{Mutex, OnceLock};
+
 use crate::api::ApiContext;
 use crate::db::dao;
 use crate::model::system::*;
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Query, State},
     http::StatusCode,
     Json,
 };
-use sea_orm::ActiveValue::Set;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
-pub struct UserQuery {
-    pub dept_id: Option<i64>,
-    pub status: Option<i8>,
-    pub keyword: Option<String>,
-    #[serde(default)]
-    pub page: u64,
-    #[serde(default = "default_page_size")]
-    pub page_size: u64,
+// ── 关联应用地址配置（内存，重启后重置，下次可从数据库扩展）─────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppLinksConfig {
+    /// ERP 前端地址
+    pub erp_url: String,
+    /// SSO 认证中心地址
+    pub sso_url: String,
 }
 
-fn default_page_size() -> u64 {
-    20
-}
+static APP_LINKS: OnceLock<Mutex<AppLinksConfig>> = OnceLock::new();
 
-// UserDto / UserPayload 保持不变
-
-#[derive(Debug, Serialize)]
-pub struct UserDto {
-    pub id: i64,
-    pub username: String,
-    pub real_name: String,
-    pub dept_id: Option<i64>,
-    pub email: Option<String>,
-    pub phone: Option<String>,
-    pub status: i8,
+fn get_app_links() -> &'static Mutex<AppLinksConfig> {
+    APP_LINKS.get_or_init(|| {
+        Mutex::new(AppLinksConfig {
+            erp_url: std::env::var("ERP_URL")
+                .unwrap_or_else(|_| "http://localhost:3000".to_string()),
+            sso_url: std::env::var("SSO_URL")
+                .unwrap_or_else(|_| "http://localhost:3001".to_string()),
+        })
+    })
 }
 
 #[derive(Debug, Deserialize)]
-pub struct UserPayload {
-    pub username: String,
-    pub password: String,
-    pub real_name: String,
-    pub dept_id: Option<i64>,
-    pub email: Option<String>,
-    pub phone: Option<String>,
-    pub status: Option<i8>,
+pub struct UpdateAppLinksRequest {
+    pub erp_url: Option<String>,
+    pub sso_url: Option<String>,
 }
 
 pub fn router() -> axum::Router<ApiContext> {
-    use axum::routing::{delete, get, post, put};
+    use axum::routing::{get, put};
 
     axum::Router::new()
-        .route("/system/users", get(list_users).post(create_user))
-        .route(
-            "/system/users/:id",
-            get(get_user).put(update_user).delete(delete_user),
-        )
-        .route(
-            "/system/login-logs",
-            get(list_login_logs),
-        )
-        .route(
-            "/system/operation-logs",
-            get(list_operation_logs),
-        )
+        // ── 关联系统地址（GET 无需额外鉴权，已由外层 SSO 中间件保护）──────
+        .route("/system/app-links", get(get_app_links_handler).put(update_app_links))
+        // ── 审计日志 ─────────────────────────────────────────────────────────
+        .route("/system/login-logs", get(list_login_logs))
+        .route("/system/operation-logs", get(list_operation_logs))
 }
 
-async fn list_users(
-    State(ctx): State<ApiContext>,
-    Query(q): Query<UserQuery>,
-) -> Result<Json<PageResult<UserDto>>, StatusCode> {
-    let filter = dao::user_dao::UserFilter {
-        dept_id: q.dept_id,
-        status: q.status,
-        keyword: q.keyword.clone(),
-    };
-    let (items, total) = dao::user_dao::list(ctx.db.conn(), filter, q.page, q.page_size)
-        .await
+async fn get_app_links_handler() -> Result<Json<AppLinksConfig>, StatusCode> {
+    let cfg = get_app_links()
+        .lock()
+        .map(|g| g.clone())
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    let mapped = items
-        .into_iter()
-        .map(|u| UserDto {
-            id: u.id,
-            username: u.username,
-            real_name: u.real_name,
-            dept_id: u.dept_id,
-            email: u.email,
-            phone: u.phone,
-            status: u.status,
-        })
-        .collect();
-
-    Ok(Json(PageResult { items: mapped, total }))
+    Ok(Json(cfg))
 }
 
-async fn get_user(
-    State(ctx): State<ApiContext>,
-    Path(id): Path<i64>,
-) -> Result<Json<UserDto>, StatusCode> {
-    let Some(u) = dao::user_dao::get_by_id(ctx.db.conn(), id)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-    else {
-        return Err(StatusCode::NOT_FOUND);
-    };
-
-    Ok(Json(UserDto {
-        id: u.id,
-        username: u.username,
-        real_name: u.real_name,
-        dept_id: u.dept_id,
-        email: u.email,
-        phone: u.phone,
-        status: u.status,
-    }))
-}
-
-async fn create_user(
-    State(ctx): State<ApiContext>,
-    Json(body): Json<UserPayload>,
-) -> Result<Json<UserDto>, StatusCode> {
-    let hashed = body.password; // TODO: hash with argon2
-    let active = crate::db::entity::users::ActiveModel {
-        username: Set(body.username),
-        password: Set(hashed),
-        real_name: Set(body.real_name),
-        dept_id: Set(body.dept_id),
-        email: Set(body.email),
-        phone: Set(body.phone),
-        status: Set(body.status.unwrap_or(1)),
-        is_locked: Set(0),
-        ..Default::default()
-    };
-    let u = dao::user_dao::create(ctx.db.conn(), active)
-        .await
+async fn update_app_links(
+    Json(req): Json<UpdateAppLinksRequest>,
+) -> Result<Json<AppLinksConfig>, StatusCode> {
+    let mut cfg = get_app_links()
+        .lock()
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(Json(UserDto {
-        id: u.id,
-        username: u.username,
-        real_name: u.real_name,
-        dept_id: u.dept_id,
-        email: u.email,
-        phone: u.phone,
-        status: u.status,
-    }))
-}
-
-async fn update_user(
-    State(ctx): State<ApiContext>,
-    Path(id): Path<i64>,
-    Json(body): Json<UserPayload>,
-) -> Result<Json<UserDto>, StatusCode> {
-    let hashed = body.password; // TODO: hash with argon2
-    let active = crate::db::entity::users::ActiveModel {
-        username: Set(body.username),
-        password: Set(hashed),
-        real_name: Set(body.real_name),
-        dept_id: Set(body.dept_id),
-        email: Set(body.email),
-        phone: Set(body.phone),
-        status: Set(body.status.unwrap_or(1)),
-        ..Default::default()
-    };
-    let Some(u) = dao::user_dao::update(ctx.db.conn(), id, active)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-    else {
-        return Err(StatusCode::NOT_FOUND);
-    };
-
-    Ok(Json(UserDto {
-        id: u.id,
-        username: u.username,
-        real_name: u.real_name,
-        dept_id: u.dept_id,
-        email: u.email,
-        phone: u.phone,
-        status: u.status,
-    }))
-}
-
-async fn delete_user(
-    State(ctx): State<ApiContext>,
-    Path(id): Path<i64>,
-) -> Result<StatusCode, StatusCode> {
-    let rows = dao::user_dao::delete(ctx.db.conn(), id)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    if rows == 0 {
-        return Err(StatusCode::NOT_FOUND);
+    if let Some(v) = req.erp_url {
+        if !v.trim().is_empty() {
+            cfg.erp_url = v.trim().to_string();
+        }
     }
-    Ok(StatusCode::NO_CONTENT)
+    if let Some(v) = req.sso_url {
+        if !v.trim().is_empty() {
+            cfg.sso_url = v.trim().to_string();
+        }
+    }
+    Ok(Json(cfg.clone()))
 }
 
-// ---- Login logs ----
+// ── 登录日志 ──────────────────────────────────────────────────────────────────
 
 async fn list_login_logs(
     State(ctx): State<ApiContext>,
@@ -229,7 +115,7 @@ async fn list_login_logs(
     Ok(Json(PageResult { items: mapped, total }))
 }
 
-// ---- Operation logs ----
+// ── 操作审计日志 ──────────────────────────────────────────────────────────────
 
 async fn list_operation_logs(
     State(ctx): State<ApiContext>,
@@ -266,5 +152,3 @@ async fn list_operation_logs(
 
     Ok(Json(PageResult { items: mapped, total }))
 }
-
-

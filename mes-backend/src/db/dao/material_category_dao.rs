@@ -14,7 +14,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<material_categories::Model>, u64)> {
-    let mut query = entity::MaterialCategories::find();
+    let mut query = material_categories::Entity::find();
 
     if let Some(parent) = filter.parent_id {
         query = query.filter(material_categories::Column::ParentId.eq(parent));
@@ -32,7 +32,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<material_categories::Model>> {
-    Ok(entity::MaterialCategories::find_by_id(id).one(conn).await?)
+    Ok(material_categories::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
@@ -48,8 +48,8 @@ pub async fn create(
     if active.status.is_not_set() {
         active.status = Set(1);
     }
-    Ok(entity::MaterialCategories::insert(active)
-        .exec_with_returning(conn)
+    Ok(material_categories::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -59,14 +59,14 @@ pub async fn update(
     mut active: material_categories::ActiveModel,
 ) -> Result<Option<material_categories::Model>> {
     active.id = Set(id);
-    let model = entity::MaterialCategories::update(active)
-        .exec_with_returning(conn)
+    let model = material_categories::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(model))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::MaterialCategories::delete_by_id(id).exec(conn).await?;
+    let res = material_categories::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

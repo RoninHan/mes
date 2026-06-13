@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<rework_orders::Model>, u64)> {
-    let mut query = entity::ReworkOrders::find();
+    let mut query = rework_orders::Entity::find();
 
     if let Some(ncr_id) = filter.ncr_id {
         query = query.filter(rework_orders::Column::NcrId.eq(ncr_id));
@@ -38,7 +38,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<rework_orders::Model>> {
-    Ok(entity::ReworkOrders::find_by_id(id)
+    Ok(rework_orders::Entity::find_by_id(id)
         .filter(rework_orders::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -48,8 +48,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: rework_orders::ActiveModel,
 ) -> Result<rework_orders::Model> {
-    Ok(entity::ReworkOrders::insert(active)
-        .exec_with_returning(conn)
+    Ok(rework_orders::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -63,7 +63,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: rework_orders::ActiveModel = entity::ReworkOrders::find_by_id(id)
+    let mut active_model: rework_orders::ActiveModel = rework_orders::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Rework order not found"))?

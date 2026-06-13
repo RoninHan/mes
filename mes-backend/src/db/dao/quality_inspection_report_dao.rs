@@ -18,7 +18,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<quality_inspection_reports::Model>, u64)> {
-    let mut query = entity::QualityInspectionReports::find();
+    let mut query = quality_inspection_reports::Entity::find();
 
     if let Some(task_id) = filter.task_id {
         query = query.filter(quality_inspection_reports::Column::TaskId.eq(task_id));
@@ -50,7 +50,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<quality_inspection_reports::Model>> {
-    Ok(entity::QualityInspectionReports::find_by_id(id)
+    Ok(quality_inspection_reports::Entity::find_by_id(id)
         .filter(quality_inspection_reports::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -73,7 +73,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: quality_inspection_reports::ActiveModel = entity::QualityInspectionReports::find_by_id(id)
+    let mut active_model: quality_inspection_reports::ActiveModel = quality_inspection_reports::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Report not found"))?

@@ -14,7 +14,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<quality_costs::Model>, u64)> {
-    let mut query = entity::QualityCosts::find();
+    let mut query = quality_costs::Entity::find();
 
     if let Some(ref period) = filter.cost_period {
         query = query.filter(quality_costs::Column::CostPeriod.eq(period.clone()));
@@ -34,7 +34,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<quality_costs::Model>> {
-    Ok(entity::QualityCosts::find_by_id(id)
+    Ok(quality_costs::Entity::find_by_id(id)
         .filter(quality_costs::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -44,8 +44,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: quality_costs::ActiveModel,
 ) -> Result<quality_costs::Model> {
-    Ok(entity::QualityCosts::insert(active)
-        .exec_with_returning(conn)
+    Ok(quality_costs::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -59,7 +59,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: quality_costs::ActiveModel = entity::QualityCosts::find_by_id(id)
+    let mut active_model: quality_costs::ActiveModel = quality_costs::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Cost not found"))?

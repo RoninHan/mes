@@ -6,7 +6,7 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use rust_decimal::prelude::FromPrimitive;
+use num_traits::cast::{FromPrimitive, ToPrimitive};
 use sea_orm::prelude::Decimal;
 use sea_orm::ActiveValue::Set;
 
@@ -727,7 +727,7 @@ async fn create_complaint(
         complaint_type: Set(body.complaint_type),
         complaint_level: Set(body.complaint_level.unwrap_or(3)),
         complaint_date: Set(body.complaint_date),
-        complaint_time: Set(body.complaint_time),
+        complaint_time: Set(body.complaint_time.with_timezone(&chrono::FixedOffset::east_opt(0).unwrap())),
         complaint_quantity: Set(body.complaint_quantity.map(|q| Decimal::from_f64(q).unwrap_or_default())),
         unit: Set(body.unit),
         complaint_description: Set(body.complaint_description),
@@ -1085,9 +1085,9 @@ async fn update_measuring_equipment(
         equipment_name: Set(body.equipment_name),
         equipment_model: Set(body.equipment_model),
         equipment_type: Set(body.equipment_type),
-        calibration_cycle: Set(body.calibration_cycle),
+        calibration_cycle: Set(body.calibration_cycle.unwrap_or(365)),
         next_calibration_date: Set(body.next_calibration_date),
-        equipment_status: Set(body.equipment_status),
+        equipment_status: Set(body.equipment_status.unwrap_or(1)),
         location: Set(body.location),
         remark: Set(body.remark),
         updated_time: Set(chrono::Utc::now().into()),
@@ -1654,7 +1654,7 @@ async fn get_quality_kpi(
 
 async fn create_quality_kpi(
     State(ctx): State<ApiContext>,
-    Json(body): Json<QualityKpiDto>,
+    Json(body): Json<QualityKpiPayload>,
 ) -> Result<Json<QualityKpiDto>, StatusCode> {
     use crate::db::entity::quality_kpi;
     
@@ -1716,7 +1716,7 @@ async fn create_quality_kpi(
 async fn update_quality_kpi(
     State(ctx): State<ApiContext>,
     Path(id): Path<i64>,
-    Json(body): Json<QualityKpiDto>,
+    Json(body): Json<QualityKpiPayload>,
 ) -> Result<Json<QualityKpiDto>, StatusCode> {
     use crate::db::entity::quality_kpi;
     

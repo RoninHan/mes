@@ -16,7 +16,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<stock_count_orders::Model>, u64)> {
-    let mut query = entity::StockCountOrders::find()
+    let mut query = stock_count_orders::Entity::find()
         .filter(stock_count_orders::Column::IsDeleted.eq(0));
 
     if let Some(w) = filter.warehouse_id {
@@ -38,13 +38,13 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<(stock_count_orders::Model, Vec<stock_count_lines::Model>)>> {
-    if let Some(order) = entity::StockCountOrders::find_by_id(id)
+    if let Some(order) = stock_count_orders::Entity::find_by_id(id)
         .filter(stock_count_orders::Column::IsDeleted.eq(0))
         .one(conn)
         .await?
     {
         let details = order
-            .find_related(entity::StockCountLines)
+            .find_related(stock_count_lines::Entity)
             .filter(stock_count_lines::Column::IsDeleted.eq(0))
             .all(conn)
             .await?;
@@ -66,14 +66,14 @@ pub async fn create(
 ) -> Result<(stock_count_orders::Model, Vec<stock_count_lines::Model>)> {
     let txn = conn.begin().await?;
 
-    let order = entity::StockCountOrders::insert(payload.order)
+    let order = stock_count_orders::Entity::insert(payload.order)
         .exec_with_returning(&txn)
         .await?;
 
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.count_id = Set(order.id);
-        let m = entity::StockCountLines::insert(d)
+        let m = stock_count_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -90,7 +90,7 @@ pub async fn update(
 ) -> Result<Option<(stock_count_orders::Model, Vec<stock_count_lines::Model>)>> {
     let txn = conn.begin().await?;
 
-    if entity::StockCountOrders::find_by_id(id)
+    if stock_count_orders::Entity::find_by_id(id)
         .filter(stock_count_orders::Column::IsDeleted.eq(0))
         .one(&txn)
         .await?
@@ -102,12 +102,12 @@ pub async fn update(
 
     let mut order_active = payload.order;
     order_active.id = Set(id);
-    let order = entity::StockCountOrders::update(order_active)
+    let order = stock_count_orders::Entity::update(order_active)
         .exec_with_returning(&txn)
         .await?;
 
-    entity::StockCountLines::update_many()
-        .col_expr(stock_count_lines::Column::IsDeleted, sea_orm::Expr::value(1))
+    stock_count_lines::Entity::update_many()
+        .col_expr(stock_count_lines::Column::IsDeleted, sea_orm_migration::sea_query::Expr::value(1))
         .filter(stock_count_lines::Column::CountId.eq(id))
         .exec(&txn)
         .await?;
@@ -115,7 +115,7 @@ pub async fn update(
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.count_id = Set(order.id);
-        let m = entity::StockCountLines::insert(d)
+        let m = stock_count_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -128,16 +128,16 @@ pub async fn update(
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
     let txn = conn.begin().await?;
 
-    entity::StockCountLines::update_many()
-        .col_expr(stock_count_lines::Column::IsDeleted, sea_orm::Expr::value(1))
+    stock_count_lines::Entity::update_many()
+        .col_expr(stock_count_lines::Column::IsDeleted, sea_orm_migration::sea_query::Expr::value(1))
         .filter(stock_count_lines::Column::CountId.eq(id))
         .exec(&txn)
         .await?;
 
-    let res = entity::StockCountOrders::update_many()
+    let res = stock_count_orders::Entity::update_many()
         .col_expr(
             stock_count_orders::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(stock_count_orders::Column::Id.eq(id))
         .exec(&txn)

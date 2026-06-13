@@ -19,7 +19,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<quality_inspection_tasks::Model>, u64)> {
-    let mut query = entity::QualityInspectionTasks::find();
+    let mut query = quality_inspection_tasks::Entity::find();
 
     if let Some(inspection_type) = filter.inspection_type {
         query = query.filter(quality_inspection_tasks::Column::InspectionType.eq(inspection_type));
@@ -54,7 +54,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<quality_inspection_tasks::Model>> {
-    Ok(entity::QualityInspectionTasks::find_by_id(id)
+    Ok(quality_inspection_tasks::Entity::find_by_id(id)
         .filter(quality_inspection_tasks::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -72,7 +72,7 @@ pub async fn update(
     id: i64,
     model: quality_inspection_tasks::ActiveModel,
 ) -> Result<quality_inspection_tasks::Model> {
-    let mut active_model: quality_inspection_tasks::ActiveModel = entity::QualityInspectionTasks::find_by_id(id)
+    let mut active_model: quality_inspection_tasks::ActiveModel = quality_inspection_tasks::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Task not found"))?
@@ -127,7 +127,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: quality_inspection_tasks::ActiveModel = entity::QualityInspectionTasks::find_by_id(id)
+    let mut active_model: quality_inspection_tasks::ActiveModel = quality_inspection_tasks::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Task not found"))?

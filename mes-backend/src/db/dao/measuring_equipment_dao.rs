@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<measuring_equipment::Model>, u64)> {
-    let mut query = entity::MeasuringEquipment::find();
+    let mut query = measuring_equipment::Entity::find();
 
     if let Some(equipment_type) = filter.equipment_type {
         query = query.filter(measuring_equipment::Column::EquipmentType.eq(equipment_type));
@@ -27,8 +27,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         query = query.filter(
             measuring_equipment::Column::EquipmentCode
-                .ilike(like.clone())
-                .or(measuring_equipment::Column::EquipmentName.ilike(like)),
+                .like(like.clone())
+                .or(measuring_equipment::Column::EquipmentName.like(like)),
         );
     }
 
@@ -43,7 +43,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<measuring_equipment::Model>> {
-    Ok(entity::MeasuringEquipment::find_by_id(id)
+    Ok(measuring_equipment::Entity::find_by_id(id)
         .filter(measuring_equipment::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -53,8 +53,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: measuring_equipment::ActiveModel,
 ) -> Result<measuring_equipment::Model> {
-    Ok(entity::MeasuringEquipment::insert(active)
-        .exec_with_returning(conn)
+    Ok(measuring_equipment::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -68,7 +68,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: measuring_equipment::ActiveModel = entity::MeasuringEquipment::find_by_id(id)
+    let mut active_model: measuring_equipment::ActiveModel = measuring_equipment::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Equipment not found"))?

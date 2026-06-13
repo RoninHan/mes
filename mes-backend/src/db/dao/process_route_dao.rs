@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<process_routes::Model>, u64)> {
-    let mut query = entity::ProcessRoutes::find().filter(process_routes::Column::IsDeleted.eq(0));
+    let mut query = process_routes::Entity::find().filter(process_routes::Column::IsDeleted.eq(0));
 
     if let Some(material_id) = filter.material_id {
         query = query.filter(process_routes::Column::MaterialId.eq(material_id));
@@ -38,7 +38,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<process_routes::Model>> {
-    Ok(entity::ProcessRoutes::find_by_id(id)
+    Ok(process_routes::Entity::find_by_id(id)
         .filter(process_routes::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -48,8 +48,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: process_routes::ActiveModel,
 ) -> Result<process_routes::Model> {
-    Ok(entity::ProcessRoutes::insert(active)
-        .exec_with_returning(conn)
+    Ok(process_routes::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -63,7 +63,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active: process_routes::ActiveModel = entity::ProcessRoutes::find_by_id(id)
+    let mut active: process_routes::ActiveModel = process_routes::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Process route not found"))?

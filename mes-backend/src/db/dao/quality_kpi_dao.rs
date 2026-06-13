@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<quality_kpi::Model>, u64)> {
-    let mut query = entity::QualityKpi::find();
+    let mut query = quality_kpi::Entity::find();
 
     if let Some(kpi_type) = filter.kpi_type {
         query = query.filter(quality_kpi::Column::KpiType.eq(kpi_type));
@@ -44,15 +44,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<quality_kpi::Model>> {
-    Ok(entity::QualityKpi::find_by_id(id).one(conn).await?)
+    Ok(quality_kpi::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: quality_kpi::ActiveModel,
 ) -> Result<quality_kpi::Model> {
-    Ok(entity::QualityKpi::insert(active)
-        .exec_with_returning(conn)
+    Ok(quality_kpi::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 

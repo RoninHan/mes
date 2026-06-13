@@ -6,7 +6,7 @@ pub async fn list_by_report_id(
     conn: ConnRef<'_>,
     report_id: i64,
 ) -> Result<Vec<quality_inspection_items::Model>> {
-    Ok(entity::QualityInspectionItems::find()
+    Ok(quality_inspection_items::Entity::find()
         .filter(quality_inspection_items::Column::ReportId.eq(report_id))
         .filter(quality_inspection_items::Column::IsDeleted.eq(0))
         .order_by_asc(quality_inspection_items::Column::SequenceNo)
@@ -18,8 +18,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: quality_inspection_items::ActiveModel,
 ) -> Result<quality_inspection_items::Model> {
-    Ok(entity::QualityInspectionItems::insert(active)
-        .exec_with_returning(conn)
+    Ok(quality_inspection_items::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -29,8 +29,8 @@ pub async fn create_batch(
 ) -> Result<Vec<quality_inspection_items::Model>> {
     let mut results = Vec::new();
     for item in items {
-        results.push(entity::QualityInspectionItems::insert(item)
-            .exec_with_returning(conn)
+        results.push(quality_inspection_items::Entity::insert(item)
+            .exec(conn)
             .await?);
     }
     Ok(results)
@@ -46,7 +46,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: quality_inspection_items::ActiveModel = entity::QualityInspectionItems::find_by_id(id)
+    let mut active_model: quality_inspection_items::ActiveModel = quality_inspection_items::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Item not found"))?
@@ -59,7 +59,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
 }
 
 pub async fn delete_by_report_id(conn: ConnRef<'_>, report_id: i64) -> Result<()> {
-    let items = entity::QualityInspectionItems::find()
+    let items = quality_inspection_items::Entity::find()
         .filter(quality_inspection_items::Column::ReportId.eq(report_id))
         .filter(quality_inspection_items::Column::IsDeleted.eq(0))
         .all(conn)

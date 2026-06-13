@@ -1,6 +1,7 @@
 use crate::db::entity::{self, equipment_fault_reports, ConnRef};
 use anyhow::Result;
 use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set};
+use sea_orm_migration::sea_query::Expr;
 
 #[derive(Debug)]
 pub struct FaultReportFilter {
@@ -15,7 +16,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment_fault_reports::Model>, u64)> {
-    let mut query = entity::EquipmentFaultReports::find()
+    let mut query = equipment_fault_reports::Entity::find()
         .filter(equipment_fault_reports::Column::IsDeleted.eq(0));
 
     if let Some(eid) = filter.equipment_id {
@@ -40,7 +41,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<equipment_fault_reports::Model>> {
-    Ok(entity::EquipmentFaultReports::find_by_id(id)
+    Ok(equipment_fault_reports::Entity::find_by_id(id)
         .filter(equipment_fault_reports::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -50,8 +51,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_fault_reports::ActiveModel,
 ) -> Result<equipment_fault_reports::Model> {
-    Ok(entity::EquipmentFaultReports::insert(active)
-        .exec_with_returning(conn)
+    Ok(equipment_fault_reports::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -62,17 +63,17 @@ pub async fn update(
 ) -> Result<Option<equipment_fault_reports::Model>> {
     active.id = Set(id);
     Ok(Some(
-        entity::EquipmentFaultReports::update(active)
-            .exec_with_returning(conn)
+        equipment_fault_reports::Entity::update(active)
+            .exec(conn)
             .await?,
     ))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::EquipmentFaultReports::update_many()
+    let res = equipment_fault_reports::Entity::update_many()
         .col_expr(
             equipment_fault_reports::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(equipment_fault_reports::Column::Id.eq(id))
         .exec(conn)

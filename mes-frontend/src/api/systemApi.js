@@ -1,26 +1,22 @@
+// 注意：用户管理已迁移至 SSO，此文件保留审计日志和关联应用地址 API。
 import request from "./axiosInstance";
 
-export const fetchUsers = (params) =>
-  request.get("/system/users", { params });
+// ── 关联应用地址配置 ───────────────────────────────────────────────────────────
 
-export const fetchUser = (id) =>
-  request.get(`/system/users/${id}`);
+/** 获取关联系统地址（ERP / SSO URL） */
+export const fetchAppLinks = () =>
+  request.get("/system/app-links");
 
-export const createUser = (data) =>
-  request.post("/system/users", data);
+/** 更新关联系统地址（仅管理员） */
+export const updateAppLinks = (data) =>
+  request.put("/system/app-links", data);
 
-export const updateUser = (id, data) =>
-  request.put(`/system/users/${id}`, data);
+// ── 登录日志 ──────────────────────────────────────────────────────────────────
 
-export const deleteUser = (id) =>
-  request.delete(`/system/users/${id}`);
-
-// Login logs
 export const fetchLoginLogs = (params) =>
   request.get("/system/login-logs", { params });
 
-// Operation logs
+// ── 操作审计日志 ──────────────────────────────────────────────────────────────
+
 export const fetchOperationLogs = (params) =>
   request.get("/system/operation-logs", { params });
-
-

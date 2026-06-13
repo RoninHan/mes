@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<nonconforming_products::Model>, u64)> {
-    let mut query = entity::NonconformingProducts::find();
+    let mut query = nonconforming_products::Entity::find();
 
     if let Some(ncr_status) = filter.ncr_status {
         query = query.filter(nonconforming_products::Column::NcrStatus.eq(ncr_status));
@@ -46,7 +46,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<nonconforming_products::Model>> {
-    Ok(entity::NonconformingProducts::find_by_id(id)
+    Ok(nonconforming_products::Entity::find_by_id(id)
         .filter(nonconforming_products::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -56,8 +56,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: nonconforming_products::ActiveModel,
 ) -> Result<nonconforming_products::Model> {
-    Ok(entity::NonconformingProducts::insert(active)
-        .exec_with_returning(conn)
+    Ok(nonconforming_products::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -71,7 +71,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: nonconforming_products::ActiveModel = entity::NonconformingProducts::find_by_id(id)
+    let mut active_model: nonconforming_products::ActiveModel = nonconforming_products::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("NCR not found"))?

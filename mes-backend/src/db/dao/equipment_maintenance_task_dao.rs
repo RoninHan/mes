@@ -1,6 +1,7 @@
 use crate::db::entity::{self, equipment_maintenance_tasks, ConnRef};
 use anyhow::Result;
 use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set};
+use sea_orm_migration::sea_query::Expr;
 
 #[derive(Debug)]
 pub struct MaintenanceTaskFilter {
@@ -14,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment_maintenance_tasks::Model>, u64)> {
-    let mut query = entity::EquipmentMaintenanceTasks::find()
+    let mut query = equipment_maintenance_tasks::Entity::find()
         .filter(equipment_maintenance_tasks::Column::IsDeleted.eq(0));
 
     if let Some(eid) = filter.equipment_id {
@@ -36,7 +37,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<equipment_maintenance_tasks::Model>> {
-    Ok(entity::EquipmentMaintenanceTasks::find_by_id(id)
+    Ok(equipment_maintenance_tasks::Entity::find_by_id(id)
         .filter(equipment_maintenance_tasks::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -46,8 +47,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_maintenance_tasks::ActiveModel,
 ) -> Result<equipment_maintenance_tasks::Model> {
-    Ok(entity::EquipmentMaintenanceTasks::insert(active)
-        .exec_with_returning(conn)
+    Ok(equipment_maintenance_tasks::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -58,17 +59,17 @@ pub async fn update(
 ) -> Result<Option<equipment_maintenance_tasks::Model>> {
     active.id = Set(id);
     Ok(Some(
-        entity::EquipmentMaintenanceTasks::update(active)
-            .exec_with_returning(conn)
+        equipment_maintenance_tasks::Entity::update(active)
+            .exec(conn)
             .await?,
     ))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::EquipmentMaintenanceTasks::update_many()
+    let res = equipment_maintenance_tasks::Entity::update_many()
         .col_expr(
             equipment_maintenance_tasks::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(equipment_maintenance_tasks::Column::Id.eq(id))
         .exec(conn)

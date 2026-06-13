@@ -1,9 +1,6 @@
-use sea_orm::entity::prelude::*;
-
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "stock_transactions")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    
     pub id: i64,
     pub trans_type: i16,
     pub ref_type: i16,
@@ -16,22 +13,10 @@ pub struct Model {
     pub unit: String,
     pub before_quantity: Option<Decimal>,
     pub after_quantity: Option<Decimal>,
-    pub business_time: DateTimeWithTimeZone,
+    pub business_time: chrono::DateTime<chrono::Utc>,
     pub remark: Option<String>,
-    pub created_time: DateTimeWithTimeZone,
-    pub updated_time: DateTimeWithTimeZone,
+    pub created_time: chrono::DateTime<chrono::Utc>,
+    pub updated_time: chrono::DateTime<chrono::Utc>,
     pub is_deleted: i16,
 }
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No Relation")
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
-
 

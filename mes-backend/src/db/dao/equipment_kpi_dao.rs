@@ -13,7 +13,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment_kpi::Model>, u64)> {
-    let mut query = entity::EquipmentKpi::find()
+    let mut query = equipment_kpi::Entity::find()
         .filter(equipment_kpi::Column::IsDeleted.eq(0));
 
     if let Some(eid) = filter.equipment_id {

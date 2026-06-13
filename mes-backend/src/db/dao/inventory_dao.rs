@@ -16,7 +16,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<inventory::Model>, u64)> {
-    let mut query = entity::Inventory::find();
+    let mut query = inventory::Entity::find();
 
     if let Some(material_id) = filter.material_id {
         query = query.filter(inventory::Column::MaterialId.eq(material_id));
@@ -40,7 +40,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<inventory::Model>> {
-    Ok(entity::Inventory::find_by_id(id).one(conn).await?)
+    Ok(inventory::Entity::find_by_id(id).one(conn).await?)
 }
 
 

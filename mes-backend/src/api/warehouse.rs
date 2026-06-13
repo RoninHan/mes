@@ -6,8 +6,8 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use rust_decimal::prelude::FromPrimitive;
-use rust_decimal::Decimal;
+use num_traits::cast::{FromPrimitive, ToPrimitive};
+use sea_orm::prelude::Decimal;
 use sea_orm::ActiveValue::Set;
 
 pub fn router() -> axum::Router<ApiContext> {
@@ -365,6 +365,674 @@ async fn delete_inbound_order(
     Path(id): Path<i64>,
 ) -> Result<StatusCode, StatusCode> {
     let rows = dao::inbound_order_dao::delete(ctx.db.conn(), id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    if rows == 0 {
+        return Err(StatusCode::NOT_FOUND);
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn list_outbound_orders(
+    State(ctx): State<ApiContext>,
+    Query(q): Query<OutboundQuery>,
+) -> Result<Json<PageResult<OutboundSummaryDto>>, StatusCode> {
+    let filter = dao::outbound_order_dao::OutboundFilter {
+        warehouse_id: q.warehouse_id,
+        outbound_type: q.outbound_type,
+        order_status: q.order_status,
+    };
+    let (items, total) =
+        dao::outbound_order_dao::list(ctx.db.conn(), filter, q.page, q.page_size)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mapped = items
+        .into_iter()
+        .map(|m| OutboundSummaryDto {
+            id: m.id,
+            outbound_no: m.outbound_no,
+            outbound_type: m.outbound_type,
+            warehouse_id: m.warehouse_id,
+            customer_id: m.customer_id,
+            plan_outbound_date: m.plan_outbound_date,
+            actual_outbound_date: m.actual_outbound_date,
+            total_quantity: m.total_quantity.to_f64().unwrap_or(0.0),
+            order_status: m.order_status,
+        })
+        .collect();
+    Ok(Json(PageResult { items: mapped, total }))
+}
+
+async fn get_outbound_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+) -> Result<Json<OutboundWithDetailsDto>, StatusCode> {
+    let Some((h, ds)) = dao::outbound_order_dao::get_by_id(ctx.db.conn(), id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    else {
+        return Err(StatusCode::NOT_FOUND);
+    };
+    let header = OutboundSummaryDto {
+        id: h.id,
+        outbound_no: h.outbound_no,
+        outbound_type: h.outbound_type,
+        warehouse_id: h.warehouse_id,
+        customer_id: h.customer_id,
+        plan_outbound_date: h.plan_outbound_date,
+        actual_outbound_date: h.actual_outbound_date,
+        total_quantity: h.total_quantity.to_f64().unwrap_or(0.0),
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| OutboundDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            warehouse_id: d.warehouse_id,
+            location_id: d.location_id,
+            batch_no: d.batch_no,
+            plan_quantity: d.plan_quantity.to_f64().unwrap_or(0.0),
+            actual_quantity: d.actual_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+        })
+        .collect();
+    Ok(Json(OutboundWithDetailsDto { header, details }))
+}
+
+async fn create_outbound_order(
+    State(ctx): State<ApiContext>,
+    Json(body): Json<OutboundPayload>,
+) -> Result<Json<OutboundWithDetailsDto>, StatusCode> {
+    let order_active = crate::db::entity::outbound_orders::ActiveModel {
+        outbound_no: Set(body.outbound_no),
+        outbound_type: Set(body.outbound_type),
+        warehouse_id: Set(body.warehouse_id),
+        customer_id: Set(body.customer_id),
+        plan_outbound_date: Set(body.plan_outbound_date),
+        order_status: Set(1),
+        remark: Set(body.remark),
+        total_quantity: Set(Decimal::from_f64(
+            body.details.iter().map(|d| d.plan_quantity).sum(),
+        )
+        .unwrap_or_default()),
+        ..Default::default()
+    };
+    let details_active = body
+        .details
+        .into_iter()
+        .map(|d| crate::db::entity::outbound_order_lines::ActiveModel {
+            material_id: Set(d.material_id),
+            warehouse_id: Set(d.warehouse_id),
+            location_id: Set(d.location_id),
+            batch_no: Set(d.batch_no),
+            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            actual_quantity: Set(Decimal::ZERO),
+            unit: Set(d.unit),
+            line_status: Set(1),
+            ..Default::default()
+        })
+        .collect();
+    let (h, ds) = dao::outbound_order_dao::create(
+        ctx.db.conn(),
+        dao::outbound_order_dao::OutboundWithDetails {
+            order: order_active,
+            details: details_active,
+        },
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let header = OutboundSummaryDto {
+        id: h.id,
+        outbound_no: h.outbound_no,
+        outbound_type: h.outbound_type,
+        warehouse_id: h.warehouse_id,
+        customer_id: h.customer_id,
+        plan_outbound_date: h.plan_outbound_date,
+        actual_outbound_date: h.actual_outbound_date,
+        total_quantity: h.total_quantity.to_f64().unwrap_or(0.0),
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| OutboundDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            warehouse_id: d.warehouse_id,
+            location_id: d.location_id,
+            batch_no: d.batch_no,
+            plan_quantity: d.plan_quantity.to_f64().unwrap_or(0.0),
+            actual_quantity: d.actual_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+        })
+        .collect();
+    Ok(Json(OutboundWithDetailsDto { header, details }))
+}
+
+async fn update_outbound_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+    Json(body): Json<OutboundPayload>,
+) -> Result<Json<OutboundWithDetailsDto>, StatusCode> {
+    let order_active = crate::db::entity::outbound_orders::ActiveModel {
+        outbound_no: Set(body.outbound_no),
+        outbound_type: Set(body.outbound_type),
+        warehouse_id: Set(body.warehouse_id),
+        customer_id: Set(body.customer_id),
+        plan_outbound_date: Set(body.plan_outbound_date),
+        remark: Set(body.remark),
+        total_quantity: Set(Decimal::from_f64(
+            body.details.iter().map(|d| d.plan_quantity).sum(),
+        )
+        .unwrap_or_default()),
+        ..Default::default()
+    };
+    let details_active = body
+        .details
+        .into_iter()
+        .map(|d| crate::db::entity::outbound_order_lines::ActiveModel {
+            material_id: Set(d.material_id),
+            warehouse_id: Set(d.warehouse_id),
+            location_id: Set(d.location_id),
+            batch_no: Set(d.batch_no),
+            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            actual_quantity: Set(Decimal::ZERO),
+            unit: Set(d.unit),
+            line_status: Set(1),
+            ..Default::default()
+        })
+        .collect();
+    let Some((h, ds)) = dao::outbound_order_dao::update(
+        ctx.db.conn(),
+        id,
+        dao::outbound_order_dao::OutboundWithDetails {
+            order: order_active,
+            details: details_active,
+        },
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    else {
+        return Err(StatusCode::NOT_FOUND);
+    };
+    let header = OutboundSummaryDto {
+        id: h.id,
+        outbound_no: h.outbound_no,
+        outbound_type: h.outbound_type,
+        warehouse_id: h.warehouse_id,
+        customer_id: h.customer_id,
+        plan_outbound_date: h.plan_outbound_date,
+        actual_outbound_date: h.actual_outbound_date,
+        total_quantity: h.total_quantity.to_f64().unwrap_or(0.0),
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| OutboundDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            warehouse_id: d.warehouse_id,
+            location_id: d.location_id,
+            batch_no: d.batch_no,
+            plan_quantity: d.plan_quantity.to_f64().unwrap_or(0.0),
+            actual_quantity: d.actual_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+        })
+        .collect();
+    Ok(Json(OutboundWithDetailsDto { header, details }))
+}
+
+async fn delete_outbound_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+) -> Result<StatusCode, StatusCode> {
+    let rows = dao::outbound_order_dao::delete(ctx.db.conn(), id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    if rows == 0 {
+        return Err(StatusCode::NOT_FOUND);
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn list_transfer_orders(
+    State(ctx): State<ApiContext>,
+    Query(q): Query<TransferQuery>,
+) -> Result<Json<PageResult<TransferSummaryDto>>, StatusCode> {
+    let filter = dao::transfer_order_dao::TransferFilter {
+        from_warehouse_id: q.from_warehouse_id,
+        to_warehouse_id: q.to_warehouse_id,
+        order_status: q.order_status,
+    };
+    let (items, total) =
+        dao::transfer_order_dao::list(ctx.db.conn(), filter, q.page, q.page_size)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let mapped = items
+        .into_iter()
+        .map(|m| TransferSummaryDto {
+            id: m.id,
+            transfer_no: m.transfer_no,
+            from_warehouse_id: m.from_warehouse_id,
+            to_warehouse_id: m.to_warehouse_id,
+            plan_transfer_date: m.plan_transfer_date,
+            actual_transfer_date: m.actual_transfer_date,
+            total_quantity: m.total_quantity.to_f64().unwrap_or(0.0),
+            order_status: m.order_status,
+        })
+        .collect();
+    Ok(Json(PageResult { items: mapped, total }))
+}
+
+async fn get_transfer_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+) -> Result<Json<TransferWithDetailsDto>, StatusCode> {
+    let Some((h, ds)) = dao::transfer_order_dao::get_by_id(ctx.db.conn(), id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    else {
+        return Err(StatusCode::NOT_FOUND);
+    };
+    let header = TransferSummaryDto {
+        id: h.id,
+        transfer_no: h.transfer_no,
+        from_warehouse_id: h.from_warehouse_id,
+        to_warehouse_id: h.to_warehouse_id,
+        plan_transfer_date: h.plan_transfer_date,
+        actual_transfer_date: h.actual_transfer_date,
+        total_quantity: h.total_quantity.to_f64().unwrap_or(0.0),
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| TransferDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            from_warehouse_id: d.from_warehouse_id,
+            from_location_id: d.from_location_id,
+            to_warehouse_id: d.to_warehouse_id,
+            to_location_id: d.to_location_id,
+            batch_no: d.batch_no,
+            plan_quantity: d.plan_quantity.to_f64().unwrap_or(0.0),
+            actual_quantity: d.actual_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+        })
+        .collect();
+    Ok(Json(TransferWithDetailsDto { header, details }))
+}
+
+async fn create_transfer_order(
+    State(ctx): State<ApiContext>,
+    Json(body): Json<TransferPayload>,
+) -> Result<Json<TransferWithDetailsDto>, StatusCode> {
+    let order_active = crate::db::entity::transfer_orders::ActiveModel {
+        transfer_no: Set(body.transfer_no),
+        from_warehouse_id: Set(body.from_warehouse_id),
+        to_warehouse_id: Set(body.to_warehouse_id),
+        plan_transfer_date: Set(body.plan_transfer_date),
+        order_status: Set(1),
+        remark: Set(body.remark),
+        total_quantity: Set(Decimal::from_f64(
+            body.details.iter().map(|d| d.plan_quantity).sum(),
+        )
+        .unwrap_or_default()),
+        ..Default::default()
+    };
+    let details_active = body
+        .details
+        .into_iter()
+        .map(|d| crate::db::entity::transfer_order_lines::ActiveModel {
+            material_id: Set(d.material_id),
+            from_warehouse_id: Set(d.from_warehouse_id),
+            from_location_id: Set(d.from_location_id),
+            to_warehouse_id: Set(d.to_warehouse_id),
+            to_location_id: Set(d.to_location_id),
+            batch_no: Set(d.batch_no),
+            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            actual_quantity: Set(Decimal::ZERO),
+            unit: Set(d.unit),
+            line_status: Set(1),
+            ..Default::default()
+        })
+        .collect();
+    let (h, ds) = dao::transfer_order_dao::create(
+        ctx.db.conn(),
+        dao::transfer_order_dao::TransferWithDetails {
+            order: order_active,
+            details: details_active,
+        },
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let header = TransferSummaryDto {
+        id: h.id,
+        transfer_no: h.transfer_no,
+        from_warehouse_id: h.from_warehouse_id,
+        to_warehouse_id: h.to_warehouse_id,
+        plan_transfer_date: h.plan_transfer_date,
+        actual_transfer_date: h.actual_transfer_date,
+        total_quantity: h.total_quantity.to_f64().unwrap_or(0.0),
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| TransferDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            from_warehouse_id: d.from_warehouse_id,
+            from_location_id: d.from_location_id,
+            to_warehouse_id: d.to_warehouse_id,
+            to_location_id: d.to_location_id,
+            batch_no: d.batch_no,
+            plan_quantity: d.plan_quantity.to_f64().unwrap_or(0.0),
+            actual_quantity: d.actual_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+        })
+        .collect();
+    Ok(Json(TransferWithDetailsDto { header, details }))
+}
+
+async fn update_transfer_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+    Json(body): Json<TransferPayload>,
+) -> Result<Json<TransferWithDetailsDto>, StatusCode> {
+    let order_active = crate::db::entity::transfer_orders::ActiveModel {
+        transfer_no: Set(body.transfer_no),
+        from_warehouse_id: Set(body.from_warehouse_id),
+        to_warehouse_id: Set(body.to_warehouse_id),
+        plan_transfer_date: Set(body.plan_transfer_date),
+        remark: Set(body.remark),
+        total_quantity: Set(Decimal::from_f64(
+            body.details.iter().map(|d| d.plan_quantity).sum(),
+        )
+        .unwrap_or_default()),
+        ..Default::default()
+    };
+    let details_active = body
+        .details
+        .into_iter()
+        .map(|d| crate::db::entity::transfer_order_lines::ActiveModel {
+            material_id: Set(d.material_id),
+            from_warehouse_id: Set(d.from_warehouse_id),
+            from_location_id: Set(d.from_location_id),
+            to_warehouse_id: Set(d.to_warehouse_id),
+            to_location_id: Set(d.to_location_id),
+            batch_no: Set(d.batch_no),
+            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            actual_quantity: Set(Decimal::ZERO),
+            unit: Set(d.unit),
+            line_status: Set(1),
+            ..Default::default()
+        })
+        .collect();
+    let Some((h, ds)) = dao::transfer_order_dao::update(
+        ctx.db.conn(),
+        id,
+        dao::transfer_order_dao::TransferWithDetails {
+            order: order_active,
+            details: details_active,
+        },
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    else {
+        return Err(StatusCode::NOT_FOUND);
+    };
+    let header = TransferSummaryDto {
+        id: h.id,
+        transfer_no: h.transfer_no,
+        from_warehouse_id: h.from_warehouse_id,
+        to_warehouse_id: h.to_warehouse_id,
+        plan_transfer_date: h.plan_transfer_date,
+        actual_transfer_date: h.actual_transfer_date,
+        total_quantity: h.total_quantity.to_f64().unwrap_or(0.0),
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| TransferDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            from_warehouse_id: d.from_warehouse_id,
+            from_location_id: d.from_location_id,
+            to_warehouse_id: d.to_warehouse_id,
+            to_location_id: d.to_location_id,
+            batch_no: d.batch_no,
+            plan_quantity: d.plan_quantity.to_f64().unwrap_or(0.0),
+            actual_quantity: d.actual_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+        })
+        .collect();
+    Ok(Json(TransferWithDetailsDto { header, details }))
+}
+
+async fn delete_transfer_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+) -> Result<StatusCode, StatusCode> {
+    let rows = dao::transfer_order_dao::delete(ctx.db.conn(), id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    if rows == 0 {
+        return Err(StatusCode::NOT_FOUND);
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn list_stock_count_orders(
+    State(ctx): State<ApiContext>,
+    Query(q): Query<StockCountQuery>,
+) -> Result<Json<PageResult<StockCountSummaryDto>>, StatusCode> {
+    let filter = dao::stock_count_dao::StockCountFilter {
+        warehouse_id: q.warehouse_id,
+        order_status: q.order_status,
+    };
+    let (items, total) =
+        dao::stock_count_dao::list(ctx.db.conn(), filter, q.page, q.page_size)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let mapped = items
+        .into_iter()
+        .map(|m| StockCountSummaryDto {
+            id: m.id,
+            count_no: m.count_no,
+            warehouse_id: m.warehouse_id,
+            count_type: m.count_type,
+            plan_count_date: m.plan_count_date,
+            actual_count_date: m.actual_count_date,
+            order_status: m.order_status,
+        })
+        .collect();
+    Ok(Json(PageResult { items: mapped, total }))
+}
+
+async fn get_stock_count_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+) -> Result<Json<StockCountWithDetailsDto>, StatusCode> {
+    let Some((h, ds)) = dao::stock_count_dao::get_by_id(ctx.db.conn(), id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    else {
+        return Err(StatusCode::NOT_FOUND);
+    };
+    let header = StockCountSummaryDto {
+        id: h.id,
+        count_no: h.count_no,
+        warehouse_id: h.warehouse_id,
+        count_type: h.count_type,
+        plan_count_date: h.plan_count_date,
+        actual_count_date: h.actual_count_date,
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| StockCountDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            warehouse_id: d.warehouse_id,
+            location_id: d.location_id,
+            batch_no: d.batch_no,
+            book_quantity: d.book_quantity.to_f64().unwrap_or(0.0),
+            counted_quantity: d.counted_quantity.to_f64().unwrap_or(0.0),
+            diff_quantity: d.diff_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+            line_status: d.line_status,
+        })
+        .collect();
+    Ok(Json(StockCountWithDetailsDto { header, details }))
+}
+
+async fn create_stock_count_order(
+    State(ctx): State<ApiContext>,
+    Json(body): Json<StockCountPayload>,
+) -> Result<Json<StockCountWithDetailsDto>, StatusCode> {
+    let order_active = crate::db::entity::stock_count_orders::ActiveModel {
+        count_no: Set(body.count_no),
+        warehouse_id: Set(body.warehouse_id),
+        count_type: Set(body.count_type),
+        plan_count_date: Set(body.plan_count_date),
+        order_status: Set(1),
+        remark: Set(body.remark),
+        ..Default::default()
+    };
+    let details_active = body
+        .details
+        .into_iter()
+        .map(|d| {
+            let book = Decimal::from_f64(d.book_quantity).unwrap_or_default();
+            let counted = Decimal::from_f64(d.counted_quantity).unwrap_or_default();
+            crate::db::entity::stock_count_lines::ActiveModel {
+                material_id: Set(d.material_id),
+                warehouse_id: Set(d.warehouse_id),
+                location_id: Set(d.location_id),
+                batch_no: Set(d.batch_no),
+                book_quantity: Set(book),
+                counted_quantity: Set(counted),
+                diff_quantity: Set(counted - book),
+                unit: Set(d.unit),
+                line_status: Set(1),
+                ..Default::default()
+            }
+        })
+        .collect();
+    let (h, ds) = dao::stock_count_dao::create(
+        ctx.db.conn(),
+        dao::stock_count_dao::StockCountWithDetails {
+            order: order_active,
+            details: details_active,
+        },
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let header = StockCountSummaryDto {
+        id: h.id,
+        count_no: h.count_no,
+        warehouse_id: h.warehouse_id,
+        count_type: h.count_type,
+        plan_count_date: h.plan_count_date,
+        actual_count_date: h.actual_count_date,
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| StockCountDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            warehouse_id: d.warehouse_id,
+            location_id: d.location_id,
+            batch_no: d.batch_no,
+            book_quantity: d.book_quantity.to_f64().unwrap_or(0.0),
+            counted_quantity: d.counted_quantity.to_f64().unwrap_or(0.0),
+            diff_quantity: d.diff_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+            line_status: d.line_status,
+        })
+        .collect();
+    Ok(Json(StockCountWithDetailsDto { header, details }))
+}
+
+async fn update_stock_count_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+    Json(body): Json<StockCountPayload>,
+) -> Result<Json<StockCountWithDetailsDto>, StatusCode> {
+    let order_active = crate::db::entity::stock_count_orders::ActiveModel {
+        count_no: Set(body.count_no),
+        warehouse_id: Set(body.warehouse_id),
+        count_type: Set(body.count_type),
+        plan_count_date: Set(body.plan_count_date),
+        remark: Set(body.remark),
+        ..Default::default()
+    };
+    let details_active = body
+        .details
+        .into_iter()
+        .map(|d| {
+            let book = Decimal::from_f64(d.book_quantity).unwrap_or_default();
+            let counted = Decimal::from_f64(d.counted_quantity).unwrap_or_default();
+            crate::db::entity::stock_count_lines::ActiveModel {
+                material_id: Set(d.material_id),
+                warehouse_id: Set(d.warehouse_id),
+                location_id: Set(d.location_id),
+                batch_no: Set(d.batch_no),
+                book_quantity: Set(book),
+                counted_quantity: Set(counted),
+                diff_quantity: Set(counted - book),
+                unit: Set(d.unit),
+                line_status: Set(1),
+                ..Default::default()
+            }
+        })
+        .collect();
+    let Some((h, ds)) = dao::stock_count_dao::update(
+        ctx.db.conn(),
+        id,
+        dao::stock_count_dao::StockCountWithDetails {
+            order: order_active,
+            details: details_active,
+        },
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    else {
+        return Err(StatusCode::NOT_FOUND);
+    };
+    let header = StockCountSummaryDto {
+        id: h.id,
+        count_no: h.count_no,
+        warehouse_id: h.warehouse_id,
+        count_type: h.count_type,
+        plan_count_date: h.plan_count_date,
+        actual_count_date: h.actual_count_date,
+        order_status: h.order_status,
+    };
+    let details = ds
+        .into_iter()
+        .map(|d| StockCountDetailDto {
+            id: d.id,
+            material_id: d.material_id,
+            warehouse_id: d.warehouse_id,
+            location_id: d.location_id,
+            batch_no: d.batch_no,
+            book_quantity: d.book_quantity.to_f64().unwrap_or(0.0),
+            counted_quantity: d.counted_quantity.to_f64().unwrap_or(0.0),
+            diff_quantity: d.diff_quantity.to_f64().unwrap_or(0.0),
+            unit: d.unit,
+            line_status: d.line_status,
+        })
+        .collect();
+    Ok(Json(StockCountWithDetailsDto { header, details }))
+}
+
+async fn delete_stock_count_order(
+    State(ctx): State<ApiContext>,
+    Path(id): Path<i64>,
+) -> Result<StatusCode, StatusCode> {
+    let rows = dao::stock_count_dao::delete(ctx.db.conn(), id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     if rows == 0 {

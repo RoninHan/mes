@@ -1,10 +1,6 @@
-use sea_orm::entity::prelude::*;
-use sea_orm::Decimal;
-
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "quality_inspection_reports")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    
     pub id: i64,
     pub report_no: String,
     pub task_id: i64,
@@ -14,10 +10,10 @@ pub struct Model {
     pub supplier_id: Option<i64>,
     pub production_order_id: Option<i64>,
     pub inspection_date: Date,
-    pub inspection_time: DateTimeWithTimeZone,
+    pub inspection_time: chrono::DateTime<chrono::Utc>,
     pub inspector_id: i64,
     pub reviewer_id: Option<i64>,
-    pub review_time: Option<DateTimeWithTimeZone>,
+    pub review_time: Option<chrono::DateTime<chrono::Utc>>,
     pub inspection_quantity: Decimal,
     pub sample_quantity: Decimal,
     pub qualified_quantity: Decimal,
@@ -37,21 +33,9 @@ pub struct Model {
     pub attachment_url: Option<String>,
     pub remark: Option<String>,
     pub created_by: Option<i64>,
-    pub created_time: DateTimeWithTimeZone,
+    pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
-    pub updated_time: DateTimeWithTimeZone,
+    pub updated_time: chrono::DateTime<chrono::Utc>,
     pub is_deleted: i16,
 }
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No relations")
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
-
 

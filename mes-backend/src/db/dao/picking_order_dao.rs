@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<picking_orders::Model>, u64)> {
-    let mut query = entity::PickingOrders::find()
+    let mut query = picking_orders::Entity::find()
         .filter(picking_orders::Column::IsDeleted.eq(0));
 
     if let Some(po) = filter.production_order_id {
@@ -42,13 +42,13 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<(picking_orders::Model, Vec<picking_order_lines::Model>)>> {
-    if let Some(order) = entity::PickingOrders::find_by_id(id)
+    if let Some(order) = picking_orders::Entity::find_by_id(id)
         .filter(picking_orders::Column::IsDeleted.eq(0))
         .one(conn)
         .await?
     {
         let details = order
-            .find_related(entity::PickingOrderLines)
+            .find_related(picking_order_lines::Entity)
             .filter(picking_order_lines::Column::IsDeleted.eq(0))
             .all(conn)
             .await?;
@@ -70,14 +70,14 @@ pub async fn create(
 ) -> Result<(picking_orders::Model, Vec<picking_order_lines::Model>)> {
     let txn = conn.begin().await?;
 
-    let order = entity::PickingOrders::insert(payload.order)
+    let order = picking_orders::Entity::insert(payload.order)
         .exec_with_returning(&txn)
         .await?;
 
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.picking_id = Set(order.id);
-        let m = entity::PickingOrderLines::insert(d)
+        let m = picking_order_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -94,7 +94,7 @@ pub async fn update(
 ) -> Result<Option<(picking_orders::Model, Vec<picking_order_lines::Model>)>> {
     let txn = conn.begin().await?;
 
-    if entity::PickingOrders::find_by_id(id)
+    if picking_orders::Entity::find_by_id(id)
         .filter(picking_orders::Column::IsDeleted.eq(0))
         .one(&txn)
         .await?
@@ -106,14 +106,14 @@ pub async fn update(
 
     let mut order_active = payload.order;
     order_active.id = Set(id);
-    let order = entity::PickingOrders::update(order_active)
+    let order = picking_orders::Entity::update(order_active)
         .exec_with_returning(&txn)
         .await?;
 
-    entity::PickingOrderLines::update_many()
+    picking_order_lines::Entity::update_many()
         .col_expr(
             picking_order_lines::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(picking_order_lines::Column::PickingId.eq(id))
         .exec(&txn)
@@ -122,7 +122,7 @@ pub async fn update(
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.picking_id = Set(order.id);
-        let m = entity::PickingOrderLines::insert(d)
+        let m = picking_order_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -135,17 +135,17 @@ pub async fn update(
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
     let txn = conn.begin().await?;
 
-    entity::PickingOrderLines::update_many()
+    picking_order_lines::Entity::update_many()
         .col_expr(
             picking_order_lines::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(picking_order_lines::Column::PickingId.eq(id))
         .exec(&txn)
         .await?;
 
-    let res = entity::PickingOrders::update_many()
-        .col_expr(picking_orders::Column::IsDeleted, sea_orm::Expr::value(1))
+    let res = picking_orders::Entity::update_many()
+        .col_expr(picking_orders::Column::IsDeleted, sea_orm_migration::sea_query::Expr::value(1))
         .filter(picking_orders::Column::Id.eq(id))
         .exec(&txn)
         .await?;

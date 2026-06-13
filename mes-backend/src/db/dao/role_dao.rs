@@ -14,7 +14,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<roles::Model>, u64)> {
-    let mut q = entity::Roles::find();
+    let mut q = roles::Entity::find();
     if let Some(status) = filter.status {
         q = q.filter(roles::Column::Status.eq(status));
     }
@@ -22,8 +22,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         q = q.filter(
             roles::Column::RoleName
-                .ilike(like.clone())
-                .or(roles::Column::RoleCode.ilike(like)),
+                .like(like.clone())
+                .or(roles::Column::RoleCode.like(like)),
         );
     }
     q = q.order_by_desc(roles::Column::Id);
@@ -34,15 +34,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<roles::Model>> {
-    Ok(entity::Roles::find_by_id(id).one(conn).await?)
+    Ok(roles::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: roles::ActiveModel,
 ) -> Result<roles::Model> {
-    Ok(entity::Roles::insert(active)
-        .exec_with_returning(conn)
+    Ok(roles::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -52,14 +52,14 @@ pub async fn update(
     mut active: roles::ActiveModel,
 ) -> Result<Option<roles::Model>> {
     active.id = Set(id);
-    let updated = entity::Roles::update(active)
-        .exec_with_returning(conn)
+    let updated = roles::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::Roles::delete_by_id(id).exec(conn).await?;
+    let res = roles::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

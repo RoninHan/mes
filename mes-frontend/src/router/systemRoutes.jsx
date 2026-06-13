@@ -2,6 +2,7 @@ import React from "react";
 import UserList from "../pages/System/UserList";
 import LoginLogList from "../pages/System/LoginLogList";
 import OperationLogList from "../pages/System/OperationLogList";
+import AppLinksSettings from "../pages/System/AppLinksSettings";
 
 export default [
   {
@@ -15,7 +16,9 @@ export default [
   {
     path: "/system/operation-logs",
     element: <OperationLogList />
+  },
+  {
+    path: "/system/app-links",
+    element: <AppLinksSettings />
   }
 ];
-
-

@@ -18,7 +18,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<production_reports::Model>, u64)> {
-    let mut query = entity::ProductionReports::find();
+    let mut query = production_reports::Entity::find();
 
     if let Some(report_type) = filter.report_type {
         query = query.filter(production_reports::Column::ReportType.eq(report_type));
@@ -42,15 +42,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<production_reports::Model>> {
-    Ok(entity::ProductionReports::find_by_id(id).one(conn).await?)
+    Ok(production_reports::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: production_reports::ActiveModel,
 ) -> Result<production_reports::Model> {
-    Ok(entity::ProductionReports::insert(active)
-        .exec_with_returning(conn)
+    Ok(production_reports::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -60,14 +60,14 @@ pub async fn update(
     mut active: production_reports::ActiveModel,
 ) -> Result<Option<production_reports::Model>> {
     active.id = Set(id);
-    let updated = entity::ProductionReports::update(active)
-        .exec_with_returning(conn)
+    let updated = production_reports::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::ProductionReports::delete_by_id(id).exec(conn).await?;
+    let res = production_reports::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

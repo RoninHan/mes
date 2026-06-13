@@ -6,7 +6,7 @@ pub async fn get_by_equipment_id(
     conn: ConnRef<'_>,
     equipment_id: i32,
 ) -> Result<Option<equipment_mqtt_config::Model>> {
-    Ok(entity::EquipmentMqttConfig::find()
+    Ok(equipment_mqtt_config::Entity::find()
         .filter(equipment_mqtt_config::Column::EquipmentId.eq(equipment_id))
         .one(conn)
         .await?)
@@ -21,13 +21,16 @@ pub async fn upsert(
 
     if let Some(existing) = get_by_equipment_id(conn, equipment_id).await? {
         data.id = Set(existing.id);
-        Ok(entity::EquipmentMqttConfig::update(data)
-            .exec_with_returning(conn)
+        Ok(equipment_mqtt_config::Entity::update(data)
+            .exec(conn)
             .await?)
     } else {
-        Ok(entity::EquipmentMqttConfig::insert(data)
-            .exec_with_returning(conn)
-            .await?)
+        let result = equipment_mqtt_config::Entity::insert(data).exec(conn).await?;
+        let model = equipment_mqtt_config::Entity::find_by_id(result.last_insert_id)
+            .one(conn)
+            .await?
+            .unwrap();
+        Ok(model)
     }
 }
 

@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<warehouses::Model>, u64)> {
-    let mut query = entity::Warehouses::find().filter(warehouses::Column::IsDeleted.eq(0));
+    let mut query = warehouses::Entity::find().filter(warehouses::Column::IsDeleted.eq(0));
 
     if let Some(warehouse_type) = filter.warehouse_type {
         query = query.filter(warehouses::Column::WarehouseType.eq(warehouse_type));
@@ -29,8 +29,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         query = query.filter(
             warehouses::Column::WarehouseName
-                .ilike(like.clone())
-                .or(warehouses::Column::WarehouseCode.ilike(like)),
+                .like(like.clone())
+                .or(warehouses::Column::WarehouseCode.like(like)),
         );
     }
 
@@ -46,7 +46,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<warehouses::Model>> {
-    Ok(entity::Warehouses::find_by_id(id)
+    Ok(warehouses::Entity::find_by_id(id)
         .filter(warehouses::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -56,8 +56,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: warehouses::ActiveModel,
 ) -> Result<warehouses::Model> {
-    Ok(entity::Warehouses::insert(active)
-        .exec_with_returning(conn)
+    Ok(warehouses::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -71,7 +71,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active: warehouses::ActiveModel = entity::Warehouses::find_by_id(id)
+    let mut active: warehouses::ActiveModel = warehouses::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Warehouse not found"))?

@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<login_logs::Model>, u64)> {
-    let mut query = entity::LoginLogs::find();
+    let mut query = login_logs::Entity::find();
 
     if let Some(user_id) = filter.user_id {
         query = query.filter(login_logs::Column::UserId.eq(user_id));
@@ -39,8 +39,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: login_logs::ActiveModel,
 ) -> Result<login_logs::Model> {
-    Ok(entity::LoginLogs::insert(active)
-        .exec_with_returning(conn)
+    Ok(login_logs::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 

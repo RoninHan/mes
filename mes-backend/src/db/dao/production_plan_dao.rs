@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<production_plans::Model>, u64)> {
-    let mut query = entity::ProductionPlans::find();
+    let mut query = production_plans::Entity::find();
 
     if let Some(status) = filter.plan_status {
         query = query.filter(production_plans::Column::PlanStatus.eq(status));
@@ -27,8 +27,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         query = query.filter(
             production_plans::Column::PlanName
-                .ilike(like.clone())
-                .or(production_plans::Column::PlanNo.ilike(like)),
+                .like(like.clone())
+                .or(production_plans::Column::PlanNo.like(like)),
         );
     }
 
@@ -41,15 +41,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<production_plans::Model>> {
-    Ok(entity::ProductionPlans::find_by_id(id).one(conn).await?)
+    Ok(production_plans::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: production_plans::ActiveModel,
 ) -> Result<production_plans::Model> {
-    Ok(entity::ProductionPlans::insert(active)
-        .exec_with_returning(conn)
+    Ok(production_plans::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -59,14 +59,14 @@ pub async fn update(
     mut active: production_plans::ActiveModel,
 ) -> Result<Option<production_plans::Model>> {
     active.id = Set(id);
-    let updated = entity::ProductionPlans::update(active)
-        .exec_with_returning(conn)
+    let updated = production_plans::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::ProductionPlans::delete_by_id(id).exec(conn).await?;
+    let res = production_plans::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

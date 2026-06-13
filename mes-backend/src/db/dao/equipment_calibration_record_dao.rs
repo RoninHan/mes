@@ -14,7 +14,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<equipment_calibration_records::Model>, u64)> {
-    let mut query = entity::EquipmentCalibrationRecords::find();
+    let mut query = equipment_calibration_records::Entity::find();
 
     if let Some(equipment_id) = filter.equipment_id {
         query = query.filter(equipment_calibration_records::Column::EquipmentId.eq(equipment_id));
@@ -34,7 +34,7 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<equipment_calibration_records::Model>> {
-    Ok(entity::EquipmentCalibrationRecords::find_by_id(id)
+    Ok(equipment_calibration_records::Entity::find_by_id(id)
         .filter(equipment_calibration_records::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -44,8 +44,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_calibration_records::ActiveModel,
 ) -> Result<equipment_calibration_records::Model> {
-    Ok(entity::EquipmentCalibrationRecords::insert(active)
-        .exec_with_returning(conn)
+    Ok(equipment_calibration_records::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -59,7 +59,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active_model: equipment_calibration_records::ActiveModel = entity::EquipmentCalibrationRecords::find_by_id(id)
+    let mut active_model: equipment_calibration_records::ActiveModel = equipment_calibration_records::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Record not found"))?

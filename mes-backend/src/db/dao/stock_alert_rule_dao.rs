@@ -15,7 +15,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<stock_alert_rules::Model>, u64)> {
-    let mut query = entity::StockAlertRules::find()
+    let mut query = stock_alert_rules::Entity::find()
         .filter(stock_alert_rules::Column::IsDeleted.eq(0));
 
     if let Some(m) = filter.material_id {
@@ -40,7 +40,7 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<stock_alert_rules::Model>> {
-    Ok(entity::StockAlertRules::find_by_id(id)
+    Ok(stock_alert_rules::Entity::find_by_id(id)
         .filter(stock_alert_rules::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
@@ -50,8 +50,8 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: stock_alert_rules::ActiveModel,
 ) -> Result<stock_alert_rules::Model> {
-    Ok(entity::StockAlertRules::insert(active)
-        .exec_with_returning(conn)
+    Ok(stock_alert_rules::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -62,17 +62,17 @@ pub async fn update(
 ) -> Result<Option<stock_alert_rules::Model>> {
     active.id = Set(id);
     Ok(Some(
-        entity::StockAlertRules::update(active)
-            .exec_with_returning(conn)
+        stock_alert_rules::Entity::update(active)
+            .exec(conn)
             .await?,
     ))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::StockAlertRules::update_many()
+    let res = stock_alert_rules::Entity::update_many()
         .col_expr(
             stock_alert_rules::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(stock_alert_rules::Column::Id.eq(id))
         .exec(conn)

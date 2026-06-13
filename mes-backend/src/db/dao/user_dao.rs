@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<users::Model>, u64)> {
-    let mut q = entity::Users::find();
+    let mut q = users::Entity::find();
 
     if let Some(dept_id) = filter.dept_id {
         q = q.filter(users::Column::DeptId.eq(dept_id));
@@ -29,8 +29,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         q = q.filter(
             users::Column::Username
-                .ilike(like.clone())
-                .or(users::Column::RealName.ilike(like)),
+                .like(like.clone())
+                .or(users::Column::RealName.like(like)),
         );
     }
 
@@ -46,22 +46,22 @@ pub async fn find_by_username(
     conn: ConnRef<'_>,
     username: &str,
 ) -> Result<Option<users::Model>> {
-    Ok(entity::Users::find()
+    Ok(users::Entity::find()
         .filter(users::Column::Username.eq(username))
         .one(conn)
         .await?)
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<users::Model>> {
-    Ok(entity::Users::find_by_id(id).one(conn).await?)
+    Ok(users::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: users::ActiveModel,
 ) -> Result<users::Model> {
-    Ok(entity::Users::insert(active)
-        .exec_with_returning(conn)
+    Ok(users::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -71,14 +71,14 @@ pub async fn update(
     mut active: users::ActiveModel,
 ) -> Result<Option<users::Model>> {
     active.id = Set(id);
-    let updated = entity::Users::update(active)
-        .exec_with_returning(conn)
+    let updated = users::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::Users::delete_by_id(id).exec(conn).await?;
+    let res = users::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

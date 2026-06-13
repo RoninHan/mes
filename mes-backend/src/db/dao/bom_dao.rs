@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<boms::Model>, u64)> {
-    let mut query = entity::Boms::find().filter(boms::Column::IsDeleted.eq(0));
+    let mut query = boms::Entity::find().filter(boms::Column::IsDeleted.eq(0));
 
     if let Some(material_id) = filter.material_id {
         query = query.filter(boms::Column::MaterialId.eq(material_id));
@@ -38,15 +38,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<boms::Model>> {
-    Ok(entity::Boms::find_by_id(id)
+    Ok(boms::Entity::find_by_id(id)
         .filter(boms::Column::IsDeleted.eq(0))
         .one(conn)
         .await?)
 }
 
 pub async fn create(conn: ConnRef<'_>, active: boms::ActiveModel) -> Result<boms::Model> {
-    Ok(entity::Boms::insert(active)
-        .exec_with_returning(conn)
+    Ok(boms::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -60,7 +60,7 @@ pub async fn update(
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
-    let mut active: boms::ActiveModel = entity::Boms::find_by_id(id)
+    let mut active: boms::ActiveModel = boms::Entity::find_by_id(id)
         .one(conn)
         .await?
         .ok_or_else(|| anyhow::anyhow!("BOM not found"))?

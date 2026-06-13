@@ -1,9 +1,6 @@
-use sea_orm::entity::prelude::*;
-
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "work_orders")]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    
     pub id: i64,
     pub work_order_no: String,
     pub production_order_id: i64,
@@ -18,10 +15,10 @@ pub struct Model {
     pub unit: String,
     pub workshop_id: Option<i64>,
     pub equipment_id: Option<i64>,
-    pub plan_start_time: Option<DateTimeWithTimeZone>,
-    pub plan_end_time: Option<DateTimeWithTimeZone>,
-    pub actual_start_time: Option<DateTimeWithTimeZone>,
-    pub actual_end_time: Option<DateTimeWithTimeZone>,
+    pub plan_start_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub plan_end_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub actual_start_time: Option<chrono::DateTime<chrono::Utc>>,
+    pub actual_end_time: Option<chrono::DateTime<chrono::Utc>>,
     pub standard_hours: Decimal,
     pub actual_hours: Decimal,
     pub standard_labor_count: i32,
@@ -35,21 +32,9 @@ pub struct Model {
     pub operator_ids: Option<String>,
     pub remark: Option<String>,
     pub created_by: Option<i64>,
-    pub created_time: DateTimeWithTimeZone,
+    pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
-    pub updated_time: DateTimeWithTimeZone,
+    pub updated_time: chrono::DateTime<chrono::Utc>,
     pub is_deleted: i8,
 }
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No Relation")
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
-
 

@@ -16,7 +16,7 @@ pub struct PermissionNode {
 
 pub async fn list_all(conn: ConnRef<'_>) -> Result<Vec<permissions::Model>> {
     Ok(
-        entity::Permissions::find()
+        permissions::Entity::find()
             .filter(permissions::Column::IsDeleted.eq(0))
             .all(conn)
             .await?,
@@ -30,8 +30,8 @@ pub async fn list_by_role_ids(
     if role_ids.is_empty() {
         return Ok(Vec::new());
     }
-    let perms = entity::Permissions::find()
-        .inner_join(entity::RolePermissions)
+    let perms = permissions::Entity::find()
+        .inner_join(role_permissions::Entity)
         .filter(role_permissions::Column::RoleId.is_in(role_ids.iter().cloned()))
         .all(conn)
         .await?;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Form, Input, Modal, Select, Space, Table, Tag, message, DatePicker, InputNumber } from "antd";
+import { Alert, Button, Card, Form, Input, Modal, Select, Space, Table, Tag, message, DatePicker, InputNumber } from "antd";
+import { LinkOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
   fetchProductionOrders,
@@ -7,6 +8,8 @@ import {
   updateProductionOrder,
   deleteProductionOrder
 } from "../../api/productionApi";
+
+const ERP_URL = import.meta.env.VITE_ERP_URL || "http://localhost:3000";
 
 const statusMap = {
   1: { text: "待发布", color: "default" },
@@ -24,11 +27,17 @@ export default function ProductionOrderList() {
   const [modalOpen, setModalOpen] = useState(false);
   const [current, setCurrent] = useState(null);
   const [form] = Form.useForm();
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  // 读取 URL 参数，支持从 ERP 跳转过来时自动过滤
+  const urlParams = new URLSearchParams(window.location.search);
+  const erpOrderNo = urlParams.get("erp_order_no") || "";
+  const [filterKeyword, setFilterKeyword] = useState(erpOrderNo);
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetchProductionOrders({ page: 0, page_size: 50 });
+      const res = await fetchProductionOrders({ page: 0, page_size: 100 });
       setData(res.items || []);
     } finally {
       setLoading(false);
@@ -37,7 +46,20 @@ export default function ProductionOrderList() {
 
   useEffect(() => {
     load();
+    // 若有 erp_order_no 参数则展示来源提示并清除 URL（避免刷新重复触发）
+    if (erpOrderNo) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, []);
+
+  // 前端过滤（按订单号/物料ID等关键字）
+  const filteredData = filterKeyword
+    ? data.filter(
+        (row) =>
+          String(row.order_no || "").toLowerCase().includes(filterKeyword.toLowerCase()) ||
+          String(row.material_id || "").includes(filterKeyword)
+      )
+    : data;
 
   const openModal = (record) => {
     setCurrent(record || null);
@@ -83,7 +105,11 @@ export default function ProductionOrderList() {
   };
 
   const columns = [
-    { title: "订单号", dataIndex: "order_no" },
+    {
+      title: "订单号",
+      dataIndex: "order_no",
+      render: (v) => <span style={{ fontFamily: "monospace" }}>{v}</span>
+    },
     { title: "计划ID", dataIndex: "plan_id" },
     { title: "物料ID", dataIndex: "material_id" },
     {
@@ -108,6 +134,20 @@ export default function ProductionOrderList() {
           <Button type="link" danger onClick={() => handleDelete(record)}>
             删除
           </Button>
+          {/* ERP 反向跳转：在 ERP 中查看对应工单 */}
+          <Button
+            type="link"
+            size="small"
+            icon={<LinkOutlined />}
+            title="在 ERP 中查看对应工单"
+            onClick={() => {
+              const url = new URL("/production", ERP_URL);
+              window.open(url.toString(), "_blank", "noopener");
+            }}
+            style={{ color: "#aaa", fontSize: 12 }}
+          >
+            ERP
+          </Button>
         </Space>
       )
     }
@@ -117,12 +157,45 @@ export default function ProductionOrderList() {
     <Card
       title="生产订单"
       extra={
-        <Button type="primary" onClick={() => openModal(null)}>
-          新建订单
-        </Button>
+        <Space>
+          <Input.Search
+            placeholder="订单号 / 物料ID"
+            allowClear
+            value={filterKeyword}
+            onChange={(e) => setFilterKeyword(e.target.value)}
+            onSearch={(v) => setFilterKeyword(v)}
+            style={{ width: 200 }}
+          />
+          <Button type="primary" onClick={() => openModal(null)}>
+            新建订单
+          </Button>
+        </Space>
       }
     >
-      <Table rowKey="id" loading={loading} columns={columns} dataSource={data} />
+      {/* 来自 ERP 跳转的提示横幅 */}
+      {erpOrderNo && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={
+            <span>
+              已从 ERP 跳转，正在显示工单号包含{" "}
+              <strong>{erpOrderNo}</strong> 的生产订单。
+              <Button
+                type="link"
+                size="small"
+                onClick={() => setFilterKeyword("")}
+                style={{ padding: "0 4px" }}
+              >
+                清除过滤
+              </Button>
+            </span>
+          }
+        />
+      )}
+
+      <Table rowKey="id" loading={loading} columns={columns} dataSource={filteredData} />
       <Modal
         open={modalOpen}
         title={current ? "编辑生产订单" : "新建生产订单"}
@@ -165,5 +238,3 @@ export default function ProductionOrderList() {
     </Card>
   );
 }
-
-

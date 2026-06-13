@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<production_orders::Model>, u64)> {
-    let mut query = entity::ProductionOrders::find();
+    let mut query = production_orders::Entity::find();
 
     if let Some(status) = filter.order_status {
         query = query.filter(production_orders::Column::OrderStatus.eq(status));
@@ -29,8 +29,8 @@ pub async fn list(
         let like = format!("%{}%", keyword);
         query = query.filter(
             production_orders::Column::OrderNo
-                .ilike(like.clone())
-                .or(production_orders::Column::BatchNo.ilike(like)),
+                .like(like.clone())
+                .or(production_orders::Column::BatchNo.like(like)),
         );
     }
 
@@ -43,15 +43,15 @@ pub async fn list(
 }
 
 pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<production_orders::Model>> {
-    Ok(entity::ProductionOrders::find_by_id(id).one(conn).await?)
+    Ok(production_orders::Entity::find_by_id(id).one(conn).await?)
 }
 
 pub async fn create(
     conn: ConnRef<'_>,
     active: production_orders::ActiveModel,
 ) -> Result<production_orders::Model> {
-    Ok(entity::ProductionOrders::insert(active)
-        .exec_with_returning(conn)
+    Ok(production_orders::Entity::insert(active)
+        .exec(conn)
         .await?)
 }
 
@@ -61,14 +61,14 @@ pub async fn update(
     mut active: production_orders::ActiveModel,
 ) -> Result<Option<production_orders::Model>> {
     active.id = Set(id);
-    let updated = entity::ProductionOrders::update(active)
-        .exec_with_returning(conn)
+    let updated = production_orders::Entity::update(active)
+        .exec(conn)
         .await?;
     Ok(Some(updated))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
-    let res = entity::ProductionOrders::delete_by_id(id).exec(conn).await?;
+    let res = production_orders::Entity::delete_by_id(id).exec(conn).await?;
     Ok(res.rows_affected)
 }
 

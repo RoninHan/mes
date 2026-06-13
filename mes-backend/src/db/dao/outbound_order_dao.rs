@@ -17,7 +17,7 @@ pub async fn list(
     page: u64,
     page_size: u64,
 ) -> Result<(Vec<outbound_orders::Model>, u64)> {
-    let mut query = entity::OutboundOrders::find()
+    let mut query = outbound_orders::Entity::find()
         .filter(outbound_orders::Column::IsDeleted.eq(0));
 
     if let Some(w) = filter.warehouse_id {
@@ -42,13 +42,13 @@ pub async fn get_by_id(
     conn: ConnRef<'_>,
     id: i64,
 ) -> Result<Option<(outbound_orders::Model, Vec<outbound_order_lines::Model>)>> {
-    if let Some(order) = entity::OutboundOrders::find_by_id(id)
+    if let Some(order) = outbound_orders::Entity::find_by_id(id)
         .filter(outbound_orders::Column::IsDeleted.eq(0))
         .one(conn)
         .await?
     {
         let details = order
-            .find_related(entity::OutboundOrderLines)
+            .find_related(outbound_order_lines::Entity)
             .filter(outbound_order_lines::Column::IsDeleted.eq(0))
             .all(conn)
             .await?;
@@ -70,14 +70,14 @@ pub async fn create(
 ) -> Result<(outbound_orders::Model, Vec<outbound_order_lines::Model>)> {
     let txn = conn.begin().await?;
 
-    let order = entity::OutboundOrders::insert(payload.order)
+    let order = outbound_orders::Entity::insert(payload.order)
         .exec_with_returning(&txn)
         .await?;
 
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.outbound_id = Set(order.id);
-        let m = entity::OutboundOrderLines::insert(d)
+        let m = outbound_order_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -94,7 +94,7 @@ pub async fn update(
 ) -> Result<Option<(outbound_orders::Model, Vec<outbound_order_lines::Model>)>> {
     let txn = conn.begin().await?;
 
-    if entity::OutboundOrders::find_by_id(id)
+    if outbound_orders::Entity::find_by_id(id)
         .filter(outbound_orders::Column::IsDeleted.eq(0))
         .one(&txn)
         .await?
@@ -106,14 +106,14 @@ pub async fn update(
 
     let mut order_active = payload.order;
     order_active.id = Set(id);
-    let order = entity::OutboundOrders::update(order_active)
+    let order = outbound_orders::Entity::update(order_active)
         .exec_with_returning(&txn)
         .await?;
 
-    entity::OutboundOrderLines::update_many()
+    outbound_order_lines::Entity::update_many()
         .col_expr(
             outbound_order_lines::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(outbound_order_lines::Column::OutboundId.eq(id))
         .exec(&txn)
@@ -122,7 +122,7 @@ pub async fn update(
     let mut created_details = Vec::new();
     for mut d in payload.details {
         d.outbound_id = Set(order.id);
-        let m = entity::OutboundOrderLines::insert(d)
+        let m = outbound_order_lines::Entity::insert(d)
             .exec_with_returning(&txn)
             .await?;
         created_details.push(m);
@@ -135,17 +135,17 @@ pub async fn update(
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {
     let txn = conn.begin().await?;
 
-    entity::OutboundOrderLines::update_many()
+    outbound_order_lines::Entity::update_many()
         .col_expr(
             outbound_order_lines::Column::IsDeleted,
-            sea_orm::Expr::value(1),
+            sea_orm_migration::sea_query::Expr::value(1),
         )
         .filter(outbound_order_lines::Column::OutboundId.eq(id))
         .exec(&txn)
         .await?;
 
-    let res = entity::OutboundOrders::update_many()
-        .col_expr(outbound_orders::Column::IsDeleted, sea_orm::Expr::value(1))
+    let res = outbound_orders::Entity::update_many()
+        .col_expr(outbound_orders::Column::IsDeleted, sea_orm_migration::sea_query::Expr::value(1))
         .filter(outbound_orders::Column::Id.eq(id))
         .exec(&txn)
         .await?;
