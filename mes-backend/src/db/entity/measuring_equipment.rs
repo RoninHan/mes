@@ -1,11 +1,15 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "measuring_equipment")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
     pub equipment_code: String,
     pub equipment_name: String,
     pub equipment_model: Option<String>,
-    pub equipment_type: i16, // 1:量具, 2:仪器, 3:检测设备, 4:其他
+    pub equipment_type: i32,
     pub manufacturer: Option<String>,
     pub serial_no: Option<String>,
     pub purchase_date: Option<chrono::NaiveDate>,
@@ -16,7 +20,7 @@ pub struct Model {
     pub next_calibration_date: Option<chrono::NaiveDate>,
     pub calibration_institution: Option<String>,
     pub calibration_certificate_no: Option<String>,
-    pub equipment_status: i16, // 1:正常, 2:待校准, 3:校准中, 4:停用, 5:报废
+    pub equipment_status: i32,
     pub location: Option<String>,
     pub custodian_id: Option<i64>,
     pub usage_frequency: Option<String>,
@@ -27,6 +31,10 @@ pub struct Model {
     pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
     pub updated_time: chrono::DateTime<chrono::Utc>,
-    pub is_deleted: i16,
+    pub is_deleted: i32,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

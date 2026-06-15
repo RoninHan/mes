@@ -7,7 +7,7 @@ pub struct OperationLogFilter {
     pub user_id: Option<i64>,
     pub module: Option<String>,
     pub action: Option<String>,
-    pub success: Option<i16>,
+    pub success: Option<i32>,
 }
 
 pub async fn list(
@@ -43,9 +43,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: operation_logs::ActiveModel,
 ) -> Result<operation_logs::Model> {
-    Ok(operation_logs::Entity::insert(active)
+    let res = operation_logs::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(operation_logs::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 

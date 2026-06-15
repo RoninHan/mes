@@ -5,7 +5,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 #[derive(Debug, Default)]
 pub struct ReworkOrderFilter {
     pub ncr_id: Option<i64>,
-    pub rework_status: Option<i16>,
+    pub rework_status: Option<i32>,
     pub material_id: Option<i64>,
 }
 
@@ -48,9 +48,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: rework_orders::ActiveModel,
 ) -> Result<rework_orders::Model> {
-    Ok(rework_orders::Entity::insert(active)
+    let res = rework_orders::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(rework_orders::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -59,7 +63,7 @@ pub async fn update(
     mut active: rework_orders::ActiveModel,
 ) -> Result<Option<rework_orders::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(rework_orders::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -71,7 +75,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    rework_orders::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

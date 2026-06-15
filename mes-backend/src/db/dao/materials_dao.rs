@@ -7,7 +7,7 @@ use sea_orm::{
 #[derive(Debug)]
 pub struct MaterialsFilter {
     pub category_id: Option<i64>,
-    pub material_type: Option<i8>,
+    pub material_type: Option<i32>,
     pub keyword: Option<String>,
 }
 
@@ -50,9 +50,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: materials::ActiveModel,
 ) -> Result<materials::Model> {
-    Ok(materials::Entity::insert(active)
+    let res = materials::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(materials::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

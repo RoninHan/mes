@@ -1,6 +1,11 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+use rust_decimal::Decimal;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "work_orders")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
     pub work_order_no: String,
     pub production_order_id: i64,
@@ -23,11 +28,11 @@ pub struct Model {
     pub actual_hours: Decimal,
     pub standard_labor_count: i32,
     pub actual_labor_count: i32,
-    pub work_order_status: i8,
-    pub is_key_process: i8,
-    pub is_quality_check: i8,
-    pub quality_check_status: Option<i8>,
-    pub is_outsourced: i8,
+    pub work_order_status: i32,
+    pub is_key_process: i32,
+    pub is_quality_check: i32,
+    pub quality_check_status: Option<i32>,
+    pub is_outsourced: i32,
     pub supplier_id: Option<i64>,
     pub operator_ids: Option<String>,
     pub remark: Option<String>,
@@ -35,6 +40,10 @@ pub struct Model {
     pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
     pub updated_time: chrono::DateTime<chrono::Utc>,
-    pub is_deleted: i8,
+    pub is_deleted: i32,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

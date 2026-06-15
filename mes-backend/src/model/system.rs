@@ -19,7 +19,7 @@ pub struct PageResult<T> {
 pub struct LoginLogQuery {
     pub user_id: Option<i64>,
     pub username: Option<String>,
-    pub result: Option<i16>,
+    pub result: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -34,7 +34,7 @@ pub struct LoginLogDto {
     pub login_time: chrono::DateTime<chrono::Utc>,
     pub login_ip: Option<String>,
     pub user_agent: Option<String>,
-    pub result: i16,
+    pub result: i32,
     pub fail_reason: Option<String>,
 }
 
@@ -45,7 +45,7 @@ pub struct OperationLogQuery {
     pub user_id: Option<i64>,
     pub module: Option<String>,
     pub action: Option<String>,
-    pub success: Option<i16>,
+    pub success: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -62,7 +62,7 @@ pub struct OperationLogDto {
     pub request_path: Option<String>,
     pub method: Option<String>,
     pub request_time: chrono::DateTime<chrono::Utc>,
-    pub success: i16,
+    pub success: i32,
     pub client_ip: Option<String>,
     pub payload: Option<serde_json::Value>,
     pub error_message: Option<String>,

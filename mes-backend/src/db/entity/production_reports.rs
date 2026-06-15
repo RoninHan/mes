@@ -1,6 +1,11 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+use rust_decimal::Decimal;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "production_reports")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
     pub report_no: String,
     pub work_order_id: i64,
@@ -9,8 +14,8 @@ pub struct Model {
     pub material_id: i64,
     pub equipment_id: Option<i64>,
     pub workshop_id: Option<i64>,
-    pub report_type: i8,
-    pub report_date: Date,
+    pub report_type: i32,
+    pub report_date: chrono::NaiveDate,
     pub report_time: chrono::DateTime<chrono::Utc>,
     pub shift: Option<String>,
     pub operator_id: i64,
@@ -28,7 +33,7 @@ pub struct Model {
     pub downtime_minutes: i32,
     pub downtime_reason: Option<String>,
     pub quality_issue: Option<String>,
-    pub is_approved: i8,
+    pub is_approved: i32,
     pub approver_id: Option<i64>,
     pub approval_time: Option<chrono::DateTime<chrono::Utc>>,
     pub remark: Option<String>,
@@ -36,6 +41,10 @@ pub struct Model {
     pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
     pub updated_time: chrono::DateTime<chrono::Utc>,
-    pub is_deleted: i8,
+    pub is_deleted: i32,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

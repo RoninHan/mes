@@ -4,8 +4,8 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 
 #[derive(Debug, Default)]
 pub struct MeasuringEquipmentFilter {
-    pub equipment_type: Option<i16>,
-    pub equipment_status: Option<i16>,
+    pub equipment_type: Option<i32>,
+    pub equipment_status: Option<i32>,
     pub keyword: Option<String>,
 }
 
@@ -53,9 +53,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: measuring_equipment::ActiveModel,
 ) -> Result<measuring_equipment::Model> {
-    Ok(measuring_equipment::Entity::insert(active)
+    let res = measuring_equipment::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(measuring_equipment::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -64,7 +68,7 @@ pub async fn update(
     mut active: measuring_equipment::ActiveModel,
 ) -> Result<Option<measuring_equipment::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(measuring_equipment::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -76,7 +80,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    measuring_equipment::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

@@ -7,7 +7,7 @@ use tracing::error;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EquipmentStatusPayload {
     pub equipment_id: i64,
-    pub status: i16,
+    pub status: i32,
     pub running_param: serde_json::Value,
     pub error_code: Option<String>,
     pub error_desc: Option<String>,

@@ -46,9 +46,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: production_receipts::ActiveModel,
 ) -> Result<production_receipts::Model> {
-    Ok(production_receipts::Entity::insert(active)
+    let res = production_receipts::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(production_receipts::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

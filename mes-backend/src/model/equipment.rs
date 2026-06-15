@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct EquipmentListQuery {
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -31,7 +31,7 @@ pub struct EquipmentCreateOrUpdate {
     pub factory: Option<String>,
     pub production_date: Option<chrono::NaiveDate>,
     pub install_date: Option<chrono::NaiveDate>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub ip_address: Option<String>,
     pub mqtt_topic: String,
     pub location: Option<String>,
@@ -49,7 +49,7 @@ pub struct EquipmentDetail {
     pub factory: Option<String>,
     pub production_date: Option<chrono::NaiveDate>,
     pub install_date: Option<chrono::NaiveDate>,
-    pub status: i16,
+    pub status: i32,
     pub ip_address: Option<String>,
     pub mqtt_topic: String,
     pub location: Option<String>,
@@ -64,13 +64,13 @@ pub struct EquipmentMqttConfigDto {
     pub password: Option<String>,
     pub client_id: String,
     pub keep_alive: Option<i32>,
-    pub qos: Option<i16>,
+    pub qos: Option<i32>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct StatusLogQuery {
     pub equipment_id: Option<i32>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub end_time: Option<chrono::DateTime<chrono::Utc>>,
     #[serde(default = "default_page")]
@@ -83,7 +83,7 @@ pub struct StatusLogQuery {
 pub struct EquipmentStatusLogDto {
     pub id: i32,
     pub equipment_id: i32,
-    pub status: i16,
+    pub status: i32,
     pub running_param: Option<serde_json::Value>,
     pub error_code: Option<String>,
     pub error_desc: Option<String>,
@@ -101,7 +101,7 @@ pub struct ControlCommandRequest {
 #[derive(Debug, Deserialize)]
 pub struct MaintenancePlanQuery {
     pub equipment_id: Option<i64>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -112,11 +112,11 @@ pub struct MaintenancePlanQuery {
 pub struct MaintenancePlanPayload {
     pub plan_no: String,
     pub equipment_id: i64,
-    pub plan_type: i16,
-    pub cycle_type: i16,
+    pub plan_type: i32,
+    pub cycle_type: i32,
     pub cycle_value: i32,
     pub next_due_time: Option<chrono::DateTime<chrono::Utc>>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -125,11 +125,11 @@ pub struct MaintenancePlanDto {
     pub id: i64,
     pub plan_no: String,
     pub equipment_id: i64,
-    pub plan_type: i16,
-    pub cycle_type: i16,
+    pub plan_type: i32,
+    pub cycle_type: i32,
     pub cycle_value: i32,
     pub next_due_time: Option<chrono::DateTime<chrono::Utc>>,
-    pub status: i16,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -138,7 +138,7 @@ pub struct MaintenancePlanDto {
 #[derive(Debug, Deserialize)]
 pub struct MaintenanceTaskQuery {
     pub equipment_id: Option<i64>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -150,12 +150,12 @@ pub struct MaintenanceTaskPayload {
     pub task_no: String,
     pub plan_id: Option<i64>,
     pub equipment_id: i64,
-    pub task_type: i16,
+    pub task_type: i32,
     pub scheduled_time: Option<chrono::DateTime<chrono::Utc>>,
     pub start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub end_time: Option<chrono::DateTime<chrono::Utc>>,
-    pub result: Option<i16>,
-    pub status: Option<i16>,
+    pub result: Option<i32>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -165,12 +165,12 @@ pub struct MaintenanceTaskDto {
     pub task_no: String,
     pub plan_id: Option<i64>,
     pub equipment_id: i64,
-    pub task_type: i16,
+    pub task_type: i32,
     pub scheduled_time: Option<chrono::DateTime<chrono::Utc>>,
     pub start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub end_time: Option<chrono::DateTime<chrono::Utc>>,
-    pub result: Option<i16>,
-    pub status: i16,
+    pub result: Option<i32>,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -179,8 +179,8 @@ pub struct MaintenanceTaskDto {
 #[derive(Debug, Deserialize)]
 pub struct FaultReportQuery {
     pub equipment_id: Option<i64>,
-    pub status: Option<i16>,
-    pub fault_level: Option<i16>,
+    pub status: Option<i32>,
+    pub fault_level: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -191,12 +191,12 @@ pub struct FaultReportQuery {
 pub struct FaultReportPayload {
     pub fault_no: String,
     pub equipment_id: i64,
-    pub fault_level: i16,
+    pub fault_level: i32,
     pub occur_time: chrono::DateTime<chrono::Utc>,
     pub report_time: Option<chrono::DateTime<chrono::Utc>>,
     pub reporter_id: Option<i64>,
     pub description: Option<String>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub root_cause: Option<String>,
     pub solution: Option<String>,
     pub remark: Option<String>,
@@ -207,12 +207,12 @@ pub struct FaultReportDto {
     pub id: i64,
     pub fault_no: String,
     pub equipment_id: i64,
-    pub fault_level: i16,
+    pub fault_level: i32,
     pub occur_time: chrono::DateTime<chrono::Utc>,
     pub report_time: chrono::DateTime<chrono::Utc>,
     pub reporter_id: Option<i64>,
     pub description: Option<String>,
-    pub status: i16,
+    pub status: i32,
     pub root_cause: Option<String>,
     pub solution: Option<String>,
     pub remark: Option<String>,
@@ -223,7 +223,7 @@ pub struct FaultReportDto {
 #[derive(Debug, Deserialize)]
 pub struct RepairOrderQuery {
     pub equipment_id: Option<i64>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -235,14 +235,14 @@ pub struct RepairOrderPayload {
     pub repair_no: String,
     pub fault_id: Option<i64>,
     pub equipment_id: i64,
-    pub repair_type: i16,
+    pub repair_type: i32,
     pub start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub end_time: Option<chrono::DateTime<chrono::Utc>>,
     pub downtime_minutes: Option<i32>,
     pub repair_person_id: Option<i64>,
     pub cost_labor: f64,
     pub cost_spare_parts: f64,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -252,14 +252,14 @@ pub struct RepairOrderDto {
     pub repair_no: String,
     pub fault_id: Option<i64>,
     pub equipment_id: i64,
-    pub repair_type: i16,
+    pub repair_type: i32,
     pub start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub end_time: Option<chrono::DateTime<chrono::Utc>>,
     pub downtime_minutes: Option<i32>,
     pub repair_person_id: Option<i64>,
     pub cost_labor: f64,
     pub cost_spare_parts: f64,
-    pub status: i16,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -268,8 +268,8 @@ pub struct RepairOrderDto {
 #[derive(Debug, Deserialize)]
 pub struct EquipmentInspectionQuery {
     pub equipment_id: Option<i64>,
-    pub inspection_type: Option<i16>,
-    pub result: Option<i16>,
+    pub inspection_type: Option<i32>,
+    pub result: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -280,10 +280,10 @@ pub struct EquipmentInspectionQuery {
 pub struct EquipmentInspectionPayload {
     pub inspection_no: String,
     pub equipment_id: i64,
-    pub inspection_type: i16,
+    pub inspection_type: i32,
     pub inspection_time: Option<chrono::DateTime<chrono::Utc>>,
     pub inspector_id: Option<i64>,
-    pub result: i16,
+    pub result: i32,
     pub items: Option<serde_json::Value>,
     pub remark: Option<String>,
 }
@@ -293,10 +293,10 @@ pub struct EquipmentInspectionDto {
     pub id: i64,
     pub inspection_no: String,
     pub equipment_id: i64,
-    pub inspection_type: i16,
+    pub inspection_type: i32,
     pub inspection_time: chrono::DateTime<chrono::Utc>,
     pub inspector_id: Option<i64>,
-    pub result: i16,
+    pub result: i32,
     pub items: Option<serde_json::Value>,
     pub remark: Option<String>,
 }

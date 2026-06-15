@@ -7,8 +7,8 @@ use sea_orm::{
 #[derive(Debug, Default)]
 pub struct ProcessRouteFilter {
     pub material_id: Option<i64>,
-    pub status: Option<i16>,
-    pub is_default: Option<i16>,
+    pub status: Option<i32>,
+    pub is_default: Option<i32>,
 }
 
 pub async fn list(
@@ -48,9 +48,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: process_routes::ActiveModel,
 ) -> Result<process_routes::Model> {
-    Ok(process_routes::Entity::insert(active)
+    let res = process_routes::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(process_routes::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -59,7 +63,7 @@ pub async fn update(
     mut active: process_routes::ActiveModel,
 ) -> Result<Option<process_routes::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(process_routes::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -71,7 +75,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
 
     active.is_deleted = Set(1);
     active.updated_time = Set(chrono::Utc::now().into());
-    active.update(conn).await?;
+    process_routes::Entity::update(active).exec(conn).await?;
     Ok(())
 }
 

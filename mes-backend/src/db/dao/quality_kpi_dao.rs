@@ -4,7 +4,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 
 #[derive(Debug, Default)]
 pub struct QualityKpiFilter {
-    pub kpi_type: Option<i16>,
+    pub kpi_type: Option<i32>,
     pub dept_id: Option<i64>,
     pub workshop_id: Option<i64>,
     pub start_date: Option<chrono::NaiveDate>,
@@ -51,9 +51,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: quality_kpi::ActiveModel,
 ) -> Result<quality_kpi::Model> {
-    Ok(quality_kpi::Entity::insert(active)
+    let res = quality_kpi::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(quality_kpi::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -62,7 +66,7 @@ pub async fn update(
     mut active: quality_kpi::ActiveModel,
 ) -> Result<Option<quality_kpi::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(quality_kpi::Entity::update(active).exec(conn).await?))
 }
 
 

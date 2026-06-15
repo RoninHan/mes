@@ -6,7 +6,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder}
 #[derive(Debug)]
 pub struct StatusLogFilter {
     pub equipment_id: Option<i32>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub start_time: Option<DateTime<Utc>>,
     pub end_time: Option<DateTime<Utc>>,
 }

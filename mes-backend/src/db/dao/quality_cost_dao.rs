@@ -5,7 +5,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 #[derive(Debug, Default)]
 pub struct QualityCostFilter {
     pub cost_period: Option<String>,
-    pub cost_category: Option<i16>,
+    pub cost_category: Option<i32>,
 }
 
 pub async fn list(
@@ -44,9 +44,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: quality_costs::ActiveModel,
 ) -> Result<quality_costs::Model> {
-    Ok(quality_costs::Entity::insert(active)
+    let res = quality_costs::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(quality_costs::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -55,7 +59,7 @@ pub async fn update(
     mut active: quality_costs::ActiveModel,
 ) -> Result<Option<quality_costs::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(quality_costs::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -67,7 +71,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    quality_costs::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

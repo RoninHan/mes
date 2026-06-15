@@ -5,8 +5,8 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 #[derive(Debug, Default)]
 pub struct CustomerComplaintFilter {
     pub customer_id: Option<i64>,
-    pub complaint_status: Option<i16>,
-    pub complaint_type: Option<i16>,
+    pub complaint_status: Option<i32>,
+    pub complaint_type: Option<i32>,
     pub material_id: Option<i64>,
 }
 
@@ -52,9 +52,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: customer_complaints::ActiveModel,
 ) -> Result<customer_complaints::Model> {
-    Ok(customer_complaints::Entity::insert(active)
+    let res = customer_complaints::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(customer_complaints::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -63,7 +67,7 @@ pub async fn update(
     mut active: customer_complaints::ActiveModel,
 ) -> Result<Option<customer_complaints::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(customer_complaints::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -75,7 +79,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    customer_complaints::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

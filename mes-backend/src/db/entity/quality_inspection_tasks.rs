@@ -1,10 +1,15 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+use rust_decimal::Decimal;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "quality_inspection_tasks")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
     pub task_no: String,
-    pub inspection_type: i16, // 1:IQC, 2:IPQC, 3:FQC, 4:OQC, 5:委外检验
-    pub source_type: i16, // 1:入库单, 2:生产工单, 3:完工单, 4:出库单
+    pub inspection_type: i32,
+    pub source_type: i32,
     pub source_order_no: String,
     pub material_id: i64,
     pub batch_no: Option<String>,
@@ -26,15 +31,19 @@ pub struct Model {
     pub actual_start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub actual_end_time: Option<chrono::DateTime<chrono::Utc>>,
     pub inspector_id: Option<i64>,
-    pub task_status: i16, // 1:待检验, 2:检验中, 3:已完成, 4:已取消
-    pub inspection_result: Option<i16>, // 1:合格, 2:不合格, 3:让步接收, 4:待定
-    pub is_urgent: i16,
-    pub priority: i16, // 1:紧急, 2:高, 3:普通, 4:低
+    pub task_status: i32,
+    pub inspection_result: Option<i32>,
+    pub is_urgent: i32,
+    pub priority: i32,
     pub remark: Option<String>,
     pub created_by: Option<i64>,
     pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
     pub updated_time: chrono::DateTime<chrono::Utc>,
-    pub is_deleted: i16,
+    pub is_deleted: i32,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

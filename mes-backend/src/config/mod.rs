@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -17,17 +17,19 @@ pub struct AppConfig {
 
 impl AppConfig {
     pub fn from_env() -> Result<Self> {
-        let mut cfg = config::Config::builder()
-            .add_source(config::Environment::default().separator("__"))
-            .build()?;
-
-        // Provide some defaults for local development
-        cfg.set_default("server_addr", "0.0.0.0:8080")?;
-        cfg.set_default("mqtt.default_broker", "tcp://localhost:1883")?;
-
-        let s: AppConfig = cfg.try_deserialize()?;
-        Ok(s)
+        Ok(AppConfig {
+            server_addr: std::env::var("SERVER_ADDR")
+                .unwrap_or_else(|_| "0.0.0.0:8080".to_string()),
+            database_url: std::env::var("DATABASE_URL")
+                .map_err(|_| anyhow!("DATABASE_URL is required"))?,
+            redis_url: std::env::var("REDIS_URL")
+                .map_err(|_| anyhow!("REDIS_URL is required"))?,
+            jwt_secret: std::env::var("JWT_SECRET")
+                .unwrap_or_else(|_| "dev-secret".to_string()),
+            mqtt: MqttConfig {
+                default_broker: std::env::var("MQTT__DEFAULT_BROKER")
+                    .unwrap_or_else(|_| "tcp://localhost:1883".to_string()),
+            },
+        })
     }
 }
-
-

@@ -727,7 +727,7 @@ async fn create_complaint(
         complaint_type: Set(body.complaint_type),
         complaint_level: Set(body.complaint_level.unwrap_or(3)),
         complaint_date: Set(body.complaint_date),
-        complaint_time: Set(body.complaint_time.with_timezone(&chrono::FixedOffset::east_opt(0).unwrap())),
+        complaint_time: Set(body.complaint_time),
         complaint_quantity: Set(body.complaint_quantity.map(|q| Decimal::from_f64(q).unwrap_or_default())),
         unit: Set(body.unit),
         complaint_description: Set(body.complaint_description),

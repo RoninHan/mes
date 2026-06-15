@@ -11,6 +11,7 @@ use num_traits::cast::ToPrimitive;
 use sea_orm::prelude::Decimal;
 use sea_orm::ActiveValue::Set;
 use chrono::Utc;
+use rust_decimal::prelude::FromPrimitive;
 
 pub fn router() -> axum::Router<ApiContext> {
     use axum::routing::{delete, get, post, put};
@@ -89,8 +90,8 @@ async fn list_equipment(
             equipment_type: m.equipment_type,
             model: m.model,
             factory: m.factory,
-            production_date: m.production_date.map(|d| d.naive_utc().date()),
-            install_date: m.install_date.map(|d| d.naive_utc().date()),
+            production_date: m.production_date.map(|d| d),
+            install_date: m.install_date.map(|d| d),
             status: m.status,
             ip_address: m.ip_address,
             mqtt_topic: m.mqtt_topic,
@@ -121,8 +122,8 @@ async fn get_equipment(
         equipment_type: m.equipment_type,
         model: m.model,
         factory: m.factory,
-        production_date: m.production_date.map(|d| d.naive_utc().date()),
-        install_date: m.install_date.map(|d| d.naive_utc().date()),
+        production_date: m.production_date.map(|d| d),
+        install_date: m.install_date.map(|d| d),
         status: m.status,
         ip_address: m.ip_address,
         mqtt_topic: m.mqtt_topic,
@@ -164,8 +165,8 @@ async fn create_equipment(
         equipment_type: m.equipment_type,
         model: m.model,
         factory: m.factory,
-        production_date: m.production_date.map(|d| d.naive_utc().date()),
-        install_date: m.install_date.map(|d| d.naive_utc().date()),
+        production_date: m.production_date.map(|d| d),
+        install_date: m.install_date.map(|d| d),
         status: m.status,
         ip_address: m.ip_address,
         mqtt_topic: m.mqtt_topic,
@@ -211,8 +212,8 @@ async fn update_equipment(
         equipment_type: m.equipment_type,
         model: m.model,
         factory: m.factory,
-        production_date: m.production_date.map(|d| d.naive_utc().date()),
-        install_date: m.install_date.map(|d| d.naive_utc().date()),
+        production_date: m.production_date.map(|d| d),
+        install_date: m.install_date.map(|d| d),
         status: m.status,
         ip_address: m.ip_address,
         mqtt_topic: m.mqtt_topic,

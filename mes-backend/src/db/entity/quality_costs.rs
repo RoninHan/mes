@@ -1,11 +1,16 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+use rust_decimal::Decimal;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "quality_costs")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
     pub cost_no: String,
     pub cost_period: String,
-    pub cost_date: Date,
-    pub cost_category: i16, // 1:预防成本, 2:鉴定成本, 3:内部失败成本, 4:外部失败成本
+    pub cost_date: chrono::NaiveDate,
+    pub cost_category: i32,
     pub cost_type: String,
     pub cost_item: String,
     pub material_id: Option<i64>,
@@ -23,6 +28,10 @@ pub struct Model {
     pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
     pub updated_time: chrono::DateTime<chrono::Utc>,
-    pub is_deleted: i16,
+    pub is_deleted: i32,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

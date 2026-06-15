@@ -6,7 +6,7 @@ use sea_orm::{
 
 #[derive(Debug)]
 pub struct ReportFilter {
-    pub report_type: Option<i8>,
+    pub report_type: Option<i32>,
     pub operator_id: Option<i64>,
     pub start_date: Option<chrono::NaiveDate>,
     pub end_date: Option<chrono::NaiveDate>,
@@ -49,9 +49,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: production_reports::ActiveModel,
 ) -> Result<production_reports::Model> {
-    Ok(production_reports::Entity::insert(active)
+    let res = production_reports::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(production_reports::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

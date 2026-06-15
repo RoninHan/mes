@@ -202,7 +202,7 @@ async fn create_inbound_order(
         plan_inbound_date: Set(body.plan_inbound_date),
         order_status: Set(1), // 待入库
         remark: Set(body.remark),
-        total_quantity: Set(Decimal::from_f64(
+        total_quantity: Set(Decimal::from_f64_retain(
             body.details.iter().map(|d| d.plan_quantity).sum(),
         )
         .unwrap_or_default()),
@@ -213,8 +213,8 @@ async fn create_inbound_order(
         .details
         .into_iter()
         .map(|d| {
-            let qty = Decimal::from_f64(d.plan_quantity).unwrap_or_default();
-            let price = Decimal::from_f64(d.unit_price).unwrap_or_default();
+            let qty = Decimal::from_f64_retain(d.plan_quantity).unwrap_or_default();
+            let price = Decimal::from_f64_retain(d.unit_price).unwrap_or_default();
             crate::db::entity::inbound_order_details::ActiveModel {
                 material_id: Set(d.material_id),
                 location_id: Set(d.location_id),
@@ -285,7 +285,7 @@ async fn update_inbound_order(
         supplier_id: Set(body.supplier_id),
         plan_inbound_date: Set(body.plan_inbound_date),
         remark: Set(body.remark),
-        total_quantity: Set(Decimal::from_f64(
+        total_quantity: Set(Decimal::from_f64_retain(
             body.details.iter().map(|d| d.plan_quantity).sum(),
         )
         .unwrap_or_default()),
@@ -296,8 +296,8 @@ async fn update_inbound_order(
         .details
         .into_iter()
         .map(|d| {
-            let qty = Decimal::from_f64(d.plan_quantity).unwrap_or_default();
-            let price = Decimal::from_f64(d.unit_price).unwrap_or_default();
+            let qty = Decimal::from_f64_retain(d.plan_quantity).unwrap_or_default();
+            let price = Decimal::from_f64_retain(d.unit_price).unwrap_or_default();
             crate::db::entity::inbound_order_details::ActiveModel {
                 material_id: Set(d.material_id),
                 location_id: Set(d.location_id),
@@ -453,7 +453,7 @@ async fn create_outbound_order(
         plan_outbound_date: Set(body.plan_outbound_date),
         order_status: Set(1),
         remark: Set(body.remark),
-        total_quantity: Set(Decimal::from_f64(
+        total_quantity: Set(Decimal::from_f64_retain(
             body.details.iter().map(|d| d.plan_quantity).sum(),
         )
         .unwrap_or_default()),
@@ -467,7 +467,7 @@ async fn create_outbound_order(
             warehouse_id: Set(d.warehouse_id),
             location_id: Set(d.location_id),
             batch_no: Set(d.batch_no),
-            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            plan_quantity: Set(Decimal::from_f64_retain(d.plan_quantity).unwrap_or_default()),
             actual_quantity: Set(Decimal::ZERO),
             unit: Set(d.unit),
             line_status: Set(1),
@@ -522,7 +522,7 @@ async fn update_outbound_order(
         customer_id: Set(body.customer_id),
         plan_outbound_date: Set(body.plan_outbound_date),
         remark: Set(body.remark),
-        total_quantity: Set(Decimal::from_f64(
+        total_quantity: Set(Decimal::from_f64_retain(
             body.details.iter().map(|d| d.plan_quantity).sum(),
         )
         .unwrap_or_default()),
@@ -536,7 +536,7 @@ async fn update_outbound_order(
             warehouse_id: Set(d.warehouse_id),
             location_id: Set(d.location_id),
             batch_no: Set(d.batch_no),
-            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            plan_quantity: Set(Decimal::from_f64_retain(d.plan_quantity).unwrap_or_default()),
             actual_quantity: Set(Decimal::ZERO),
             unit: Set(d.unit),
             line_status: Set(1),
@@ -674,7 +674,7 @@ async fn create_transfer_order(
         plan_transfer_date: Set(body.plan_transfer_date),
         order_status: Set(1),
         remark: Set(body.remark),
-        total_quantity: Set(Decimal::from_f64(
+        total_quantity: Set(Decimal::from_f64_retain(
             body.details.iter().map(|d| d.plan_quantity).sum(),
         )
         .unwrap_or_default()),
@@ -690,7 +690,7 @@ async fn create_transfer_order(
             to_warehouse_id: Set(d.to_warehouse_id),
             to_location_id: Set(d.to_location_id),
             batch_no: Set(d.batch_no),
-            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            plan_quantity: Set(Decimal::from_f64_retain(d.plan_quantity).unwrap_or_default()),
             actual_quantity: Set(Decimal::ZERO),
             unit: Set(d.unit),
             line_status: Set(1),
@@ -745,7 +745,7 @@ async fn update_transfer_order(
         to_warehouse_id: Set(body.to_warehouse_id),
         plan_transfer_date: Set(body.plan_transfer_date),
         remark: Set(body.remark),
-        total_quantity: Set(Decimal::from_f64(
+        total_quantity: Set(Decimal::from_f64_retain(
             body.details.iter().map(|d| d.plan_quantity).sum(),
         )
         .unwrap_or_default()),
@@ -761,7 +761,7 @@ async fn update_transfer_order(
             to_warehouse_id: Set(d.to_warehouse_id),
             to_location_id: Set(d.to_location_id),
             batch_no: Set(d.batch_no),
-            plan_quantity: Set(Decimal::from_f64(d.plan_quantity).unwrap_or_default()),
+            plan_quantity: Set(Decimal::from_f64_retain(d.plan_quantity).unwrap_or_default()),
             actual_quantity: Set(Decimal::ZERO),
             unit: Set(d.unit),
             line_status: Set(1),
@@ -903,8 +903,8 @@ async fn create_stock_count_order(
         .details
         .into_iter()
         .map(|d| {
-            let book = Decimal::from_f64(d.book_quantity).unwrap_or_default();
-            let counted = Decimal::from_f64(d.counted_quantity).unwrap_or_default();
+            let book = Decimal::from_f64_retain(d.book_quantity).unwrap_or_default();
+            let counted = Decimal::from_f64_retain(d.counted_quantity).unwrap_or_default();
             crate::db::entity::stock_count_lines::ActiveModel {
                 material_id: Set(d.material_id),
                 warehouse_id: Set(d.warehouse_id),
@@ -972,8 +972,8 @@ async fn update_stock_count_order(
         .details
         .into_iter()
         .map(|d| {
-            let book = Decimal::from_f64(d.book_quantity).unwrap_or_default();
-            let counted = Decimal::from_f64(d.counted_quantity).unwrap_or_default();
+            let book = Decimal::from_f64_retain(d.book_quantity).unwrap_or_default();
+            let counted = Decimal::from_f64_retain(d.counted_quantity).unwrap_or_default();
             crate::db::entity::stock_count_lines::ActiveModel {
                 material_id: Set(d.material_id),
                 warehouse_id: Set(d.warehouse_id),

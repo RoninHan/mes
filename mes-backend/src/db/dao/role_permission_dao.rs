@@ -8,6 +8,7 @@ pub async fn list_permissions_for_role(
     role_permissions::Entity::find()
         .filter(role_permissions::Column::RoleId.eq(role_id))
         .all(conn)
+        .await
 }
 
 pub async fn replace_role_permissions(

@@ -1,13 +1,13 @@
 # 构建阶段
-FROM node:20-alpine as builder
+FROM node:20-slim as builder
 
 WORKDIR /app
 
 # 复制 package 文件
-COPY package.json package-lock.json* ./
+COPY package.json ./
 
-# 安装依赖
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+# 安装依赖（删除 lock 文件以适配当前平台）
+RUN npm install --legacy-peer-deps
 
 # 复制源代码
 COPY . .

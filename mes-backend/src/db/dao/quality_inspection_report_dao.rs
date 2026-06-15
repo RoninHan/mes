@@ -5,11 +5,11 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 #[derive(Debug, Default)]
 pub struct QualityInspectionReportFilter {
     pub task_id: Option<i64>,
-    pub inspection_type: Option<i16>,
+    pub inspection_type: Option<i32>,
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub report_status: Option<i16>,
-    pub inspection_result: Option<i16>,
+    pub report_status: Option<i32>,
+    pub inspection_result: Option<i32>,
 }
 
 pub async fn list(
@@ -69,7 +69,7 @@ pub async fn update(
     mut active: quality_inspection_reports::ActiveModel,
 ) -> Result<Option<quality_inspection_reports::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(quality_inspection_reports::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -81,7 +81,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    quality_inspection_reports::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

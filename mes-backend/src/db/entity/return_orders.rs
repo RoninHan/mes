@@ -1,27 +1,28 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+use rust_decimal::Decimal;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "return_orders")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
     pub return_no: String,
     pub production_order_id: i64,
     pub warehouse_id: i64,
     pub work_order_id: Option<i64>,
-    pub return_type: i16,
+    pub return_type: i32,
     pub plan_return_date: Option<chrono::NaiveDate>,
     pub actual_return_date: Option<chrono::NaiveDate>,
     pub total_quantity: Decimal,
-    pub order_status: i16,
+    pub order_status: i32,
     pub remark: Option<String>,
     pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_time: chrono::DateTime<chrono::Utc>,
-    pub is_deleted: i16,
+    pub is_deleted: i32,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
 
-
-impl Related<super::return_order_lines::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ReturnOrderLines.def()
-    }
-}
-
+impl ActiveModelBehavior for ActiveModel {}

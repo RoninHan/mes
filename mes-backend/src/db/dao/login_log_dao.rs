@@ -6,7 +6,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder}
 pub struct LoginLogFilter {
     pub user_id: Option<i64>,
     pub username: Option<String>,
-    pub result: Option<i16>,
+    pub result: Option<i32>,
 }
 
 pub async fn list(
@@ -39,9 +39,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: login_logs::ActiveModel,
 ) -> Result<login_logs::Model> {
-    Ok(login_logs::Entity::insert(active)
+    let res = login_logs::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(login_logs::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 

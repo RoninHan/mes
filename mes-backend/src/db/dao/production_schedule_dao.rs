@@ -60,9 +60,13 @@ pub async fn create(
     if active.priority.is_not_set() {
         active.priority = Set(3);
     }
-    Ok(production_schedules::Entity::insert(active)
+    let res = production_schedules::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(production_schedules::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

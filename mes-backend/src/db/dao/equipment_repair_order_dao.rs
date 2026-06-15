@@ -6,7 +6,7 @@ use sea_orm_migration::sea_query::Expr;
 #[derive(Debug)]
 pub struct RepairOrderFilter {
     pub equipment_id: Option<i64>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
 }
 
 pub async fn list(
@@ -47,9 +47,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_repair_orders::ActiveModel,
 ) -> Result<equipment_repair_orders::Model> {
-    Ok(equipment_repair_orders::Entity::insert(active)
+    let res = equipment_repair_orders::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(equipment_repair_orders::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

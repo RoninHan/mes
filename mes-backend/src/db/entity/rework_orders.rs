@@ -1,6 +1,11 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+use rust_decimal::Decimal;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "rework_orders")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
     pub rework_no: String,
     pub ncr_id: i64,
@@ -11,7 +16,7 @@ pub struct Model {
     pub qualified_quantity: Decimal,
     pub scrap_quantity: Decimal,
     pub unit: String,
-    pub rework_type: i16, // 1:工序返工, 2:全检挑选, 3:返修, 4:其他
+    pub rework_type: i32,
     pub rework_reason: String,
     pub rework_plan: Option<String>,
     pub rework_process: Option<String>,
@@ -22,8 +27,8 @@ pub struct Model {
     pub actual_end_date: Option<chrono::NaiveDate>,
     pub handler_id: Option<i64>,
     pub rework_cost: Decimal,
-    pub rework_status: i16, // 1:待返工, 2:返工中, 3:已完成, 4:已取消
-    pub inspection_result: Option<i16>, // 1:合格, 2:不合格
+    pub rework_status: i32,
+    pub inspection_result: Option<i32>,
     pub inspector_id: Option<i64>,
     pub inspection_time: Option<chrono::DateTime<chrono::Utc>>,
     pub remark: Option<String>,
@@ -31,6 +36,10 @@ pub struct Model {
     pub created_time: chrono::DateTime<chrono::Utc>,
     pub updated_by: Option<i64>,
     pub updated_time: chrono::DateTime<chrono::Utc>,
-    pub is_deleted: i16,
+    pub is_deleted: i32,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

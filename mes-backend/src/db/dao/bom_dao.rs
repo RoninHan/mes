@@ -7,8 +7,8 @@ use sea_orm::{
 #[derive(Debug, Default)]
 pub struct BomFilter {
     pub material_id: Option<i64>,
-    pub status: Option<i16>,
-    pub is_default: Option<i16>,
+    pub status: Option<i32>,
+    pub is_default: Option<i32>,
 }
 
 pub async fn list(
@@ -45,9 +45,13 @@ pub async fn get_by_id(conn: ConnRef<'_>, id: i64) -> Result<Option<boms::Model>
 }
 
 pub async fn create(conn: ConnRef<'_>, active: boms::ActiveModel) -> Result<boms::Model> {
-    Ok(boms::Entity::insert(active)
+    let res = boms::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(boms::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -56,7 +60,7 @@ pub async fn update(
     mut active: boms::ActiveModel,
 ) -> Result<Option<boms::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(boms::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -68,7 +72,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
 
     active.is_deleted = Set(1);
     active.updated_time = Set(chrono::Utc::now().into());
-    active.update(conn).await?;
+    boms::Entity::update(active).exec(conn).await?;
     Ok(())
 }
 

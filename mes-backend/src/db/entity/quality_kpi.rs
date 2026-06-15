@@ -1,9 +1,14 @@
-#[derive(Clone, Debug, PartialEq)]
+use sea_orm::entity::prelude::*;
+use chrono;
+use rust_decimal::Decimal;
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[sea_orm(table_name = "quality_kpi")]
 pub struct Model {
-    
+    #[sea_orm(primary_key, auto_increment = true)]
     pub id: i64,
-    pub kpi_date: Date,
-    pub kpi_type: i16, // 1:日报, 2:周报, 3:月报
+    pub kpi_date: chrono::NaiveDate,
+    pub kpi_type: i32,
     pub dept_id: Option<i64>,
     pub workshop_id: Option<i64>,
     pub total_inspections: i32,
@@ -44,3 +49,7 @@ pub struct Model {
     pub updated_time: chrono::DateTime<chrono::Utc>,
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

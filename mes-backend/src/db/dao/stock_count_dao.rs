@@ -1,13 +1,14 @@
 use crate::db::entity::{self, stock_count_lines, stock_count_orders, ConnRef};
 use anyhow::Result;
 use sea_orm::{
+    ModelTrait,
     ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait,
 };
 
 #[derive(Debug)]
 pub struct StockCountFilter {
     pub warehouse_id: Option<i64>,
-    pub order_status: Option<i16>,
+    pub order_status: Option<i32>,
 }
 
 pub async fn list(
@@ -43,8 +44,8 @@ pub async fn get_by_id(
         .one(conn)
         .await?
     {
-        let details = order
-            .find_related(stock_count_lines::Entity)
+        let details = stock_count_lines::Entity::find()
+            .filter(stock_count_lines::Column::CountId.eq(order.id))
             .filter(stock_count_lines::Column::IsDeleted.eq(0))
             .all(conn)
             .await?;
@@ -66,20 +67,32 @@ pub async fn create(
 ) -> Result<(stock_count_orders::Model, Vec<stock_count_lines::Model>)> {
     let txn = conn.begin().await?;
 
-    let order = stock_count_orders::Entity::insert(payload.order)
-        .exec_with_returning(&txn)
+    let order_result = stock_count_orders::Entity::insert(payload.order)
+        .exec(&txn)
         .await?;
+    let order_id = order_result.last_insert_id;
 
-    let mut created_details = Vec::new();
+    let mut created_detail_ids = Vec::new();
     for mut d in payload.details {
-        d.count_id = Set(order.id);
+        d.count_id = Set(order_id);
         let m = stock_count_lines::Entity::insert(d)
-            .exec_with_returning(&txn)
+            .exec(&txn)
             .await?;
-        created_details.push(m);
+        created_detail_ids.push(m.last_insert_id);
     }
 
     txn.commit().await?;
+
+    let order = stock_count_orders::Entity::find_by_id(order_id)
+        .one(conn)
+        .await?
+        .unwrap();
+    let mut created_details = Vec::new();
+    for id in created_detail_ids {
+        if let Some(m) = stock_count_lines::Entity::find_by_id(id).one(conn).await? {
+            created_details.push(m);
+        }
+    }
     Ok((order, created_details))
 }
 
@@ -101,28 +114,42 @@ pub async fn update(
     }
 
     let mut order_active = payload.order;
-    order_active.id = Set(id);
-    let order = stock_count_orders::Entity::update(order_active)
-        .exec_with_returning(&txn)
-        .await?;
-
-    stock_count_lines::Entity::update_many()
-        .col_expr(stock_count_lines::Column::IsDeleted, sea_orm_migration::sea_query::Expr::value(1))
-        .filter(stock_count_lines::Column::CountId.eq(id))
-        .exec(&txn)
-        .await?;
-
-    let mut created_details = Vec::new();
-    for mut d in payload.details {
-        d.count_id = Set(order.id);
-        let m = stock_count_lines::Entity::insert(d)
-            .exec_with_returning(&txn)
+        order_active.id = Set(id);
+        stock_count_orders::Entity::update(order_active)
+            .exec(&txn)
             .await?;
-        created_details.push(m);
-    }
 
-    txn.commit().await?;
-    Ok((order, created_details))
+        stock_count_lines::Entity::update_many()
+            .col_expr(
+                stock_count_lines::Column::IsDeleted,
+                sea_orm_migration::sea_query::Expr::value(1),
+            )
+            .filter(stock_count_lines::Column::CountId.eq(id))
+            .exec(&txn)
+            .await?;
+
+        let mut created_detail_ids = Vec::new();
+        for mut d in payload.details {
+            d.count_id = Set(id);
+            let m = stock_count_lines::Entity::insert(d)
+                .exec(&txn)
+                .await?;
+            created_detail_ids.push(m.last_insert_id);
+        }
+
+        txn.commit().await?;
+
+        let order = stock_count_orders::Entity::find_by_id(id)
+            .one(conn)
+            .await?
+            .unwrap();
+        let mut created_details = Vec::new();
+        for detail_id in created_detail_ids {
+            if let Some(m) = stock_count_lines::Entity::find_by_id(detail_id).one(conn).await? {
+                created_details.push(m);
+            }
+        }
+        Ok(Some((order, created_details)))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<u64> {

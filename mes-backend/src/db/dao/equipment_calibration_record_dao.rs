@@ -5,7 +5,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 #[derive(Debug, Default)]
 pub struct EquipmentCalibrationRecordFilter {
     pub equipment_id: Option<i64>,
-    pub calibration_result: Option<i16>,
+    pub calibration_result: Option<i32>,
 }
 
 pub async fn list(
@@ -44,9 +44,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_calibration_records::ActiveModel,
 ) -> Result<equipment_calibration_records::Model> {
-    Ok(equipment_calibration_records::Entity::insert(active)
+    let res = equipment_calibration_records::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(equipment_calibration_records::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -55,7 +59,7 @@ pub async fn update(
     mut active: equipment_calibration_records::ActiveModel,
 ) -> Result<Option<equipment_calibration_records::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(equipment_calibration_records::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -67,7 +71,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    equipment_calibration_records::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

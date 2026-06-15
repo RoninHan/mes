@@ -4,12 +4,12 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 
 #[derive(Debug, Default)]
 pub struct QualityInspectionTaskFilter {
-    pub inspection_type: Option<i16>,
-    pub source_type: Option<i16>,
+    pub inspection_type: Option<i32>,
+    pub source_type: Option<i32>,
     pub source_order_no: Option<String>,
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub task_status: Option<i16>,
+    pub task_status: Option<i32>,
     pub inspector_id: Option<i64>,
 }
 
@@ -123,7 +123,7 @@ pub async fn update(
     }
     active_model.updated_time = Set(chrono::Utc::now().into());
 
-    Ok(active_model.update(conn).await?)
+    Ok(quality_inspection_tasks::Entity::update(active_model).exec(conn).await?)
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -135,7 +135,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    quality_inspection_tasks::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

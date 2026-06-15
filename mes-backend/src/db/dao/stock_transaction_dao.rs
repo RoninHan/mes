@@ -6,7 +6,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder}
 pub struct StockTransactionFilter {
     pub material_id: Option<i64>,
     pub warehouse_id: Option<i64>,
-    pub trans_type: Option<i16>,
+    pub trans_type: Option<i32>,
 }
 
 pub async fn list(

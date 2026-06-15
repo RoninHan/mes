@@ -6,8 +6,8 @@ use sea_orm::{
 
 #[derive(Debug)]
 pub struct SupplierFilter {
-    pub supplier_type: Option<i8>,
-    pub status: Option<i8>,
+    pub supplier_type: Option<i32>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
 }
 
@@ -50,9 +50,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: suppliers::ActiveModel,
 ) -> Result<suppliers::Model> {
-    Ok(suppliers::Entity::insert(active)
+    let res = suppliers::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(suppliers::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

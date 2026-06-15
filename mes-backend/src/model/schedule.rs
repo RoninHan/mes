@@ -30,8 +30,8 @@ pub struct TimelineItemDto {
     pub workshop_id: Option<i64>,
     pub start_time: DateTime<Utc>,
     pub end_time: DateTime<Utc>,
-    pub status: i16,
-    pub priority: i16,
+    pub status: i32,
+    pub priority: i32,
 }
 
 #[derive(Debug, Serialize)]
@@ -47,8 +47,8 @@ pub struct ScheduleCreateRequest {
     pub workshop_id: Option<i64>,
     pub start_time: DateTime<Utc>,
     pub end_time: DateTime<Utc>,
-    pub status: Option<i16>,
-    pub priority: Option<i16>,
+    pub status: Option<i32>,
+    pub priority: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -58,8 +58,8 @@ pub struct ScheduleUpdateRequest {
     pub workshop_id: Option<i64>,
     pub start_time: Option<DateTime<Utc>>,
     pub end_time: Option<DateTime<Utc>>,
-    pub status: Option<i16>,
-    pub priority: Option<i16>,
+    pub status: Option<i32>,
+    pub priority: Option<i32>,
     pub remark: Option<String>,
 }
 

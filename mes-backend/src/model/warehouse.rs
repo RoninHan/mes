@@ -44,8 +44,8 @@ pub struct InventoryDto {
 #[derive(Debug, Deserialize)]
 pub struct InboundQuery {
     pub warehouse_id: Option<i64>,
-    pub inbound_type: Option<i8>,
-    pub order_status: Option<i8>,
+    pub inbound_type: Option<i32>,
+    pub order_status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -56,13 +56,13 @@ pub struct InboundQuery {
 pub struct InboundSummaryDto {
     pub id: i64,
     pub inbound_no: String,
-    pub inbound_type: i8,
+    pub inbound_type: i32,
     pub warehouse_id: i64,
     pub supplier_id: Option<i64>,
     pub plan_inbound_date: Option<chrono::NaiveDate>,
     pub actual_inbound_date: Option<chrono::NaiveDate>,
     pub total_quantity: f64,
-    pub order_status: i8,
+    pub order_status: i32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -78,7 +78,7 @@ pub struct InboundDetailPayload {
 #[derive(Debug, Deserialize)]
 pub struct InboundPayload {
     pub inbound_no: String,
-    pub inbound_type: i8,
+    pub inbound_type: i32,
     pub warehouse_id: i64,
     pub supplier_id: Option<i64>,
     pub plan_inbound_date: Option<chrono::NaiveDate>,
@@ -110,8 +110,8 @@ pub struct InboundWithDetailsDto {
 #[derive(Debug, Deserialize)]
 pub struct OutboundQuery {
     pub warehouse_id: Option<i64>,
-    pub outbound_type: Option<i16>,
-    pub order_status: Option<i16>,
+    pub outbound_type: Option<i32>,
+    pub order_status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -122,13 +122,13 @@ pub struct OutboundQuery {
 pub struct OutboundSummaryDto {
     pub id: i64,
     pub outbound_no: String,
-    pub outbound_type: i16,
+    pub outbound_type: i32,
     pub warehouse_id: i64,
     pub customer_id: Option<i64>,
     pub plan_outbound_date: Option<chrono::NaiveDate>,
     pub actual_outbound_date: Option<chrono::NaiveDate>,
     pub total_quantity: f64,
-    pub order_status: i16,
+    pub order_status: i32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -144,7 +144,7 @@ pub struct OutboundDetailPayload {
 #[derive(Debug, Deserialize)]
 pub struct OutboundPayload {
     pub outbound_no: String,
-    pub outbound_type: i16,
+    pub outbound_type: i32,
     pub warehouse_id: i64,
     pub customer_id: Option<i64>,
     pub plan_outbound_date: Option<chrono::NaiveDate>,
@@ -176,7 +176,7 @@ pub struct OutboundWithDetailsDto {
 pub struct TransferQuery {
     pub from_warehouse_id: Option<i64>,
     pub to_warehouse_id: Option<i64>,
-    pub order_status: Option<i16>,
+    pub order_status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -192,7 +192,7 @@ pub struct TransferSummaryDto {
     pub plan_transfer_date: Option<chrono::NaiveDate>,
     pub actual_transfer_date: Option<chrono::NaiveDate>,
     pub total_quantity: f64,
-    pub order_status: i16,
+    pub order_status: i32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -242,7 +242,7 @@ pub struct TransferWithDetailsDto {
 #[derive(Debug, Deserialize)]
 pub struct StockCountQuery {
     pub warehouse_id: Option<i64>,
-    pub order_status: Option<i16>,
+    pub order_status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -254,10 +254,10 @@ pub struct StockCountSummaryDto {
     pub id: i64,
     pub count_no: String,
     pub warehouse_id: i64,
-    pub count_type: i16,
+    pub count_type: i32,
     pub plan_count_date: Option<chrono::NaiveDate>,
     pub actual_count_date: Option<chrono::NaiveDate>,
-    pub order_status: i16,
+    pub order_status: i32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -275,7 +275,7 @@ pub struct StockCountDetailPayload {
 pub struct StockCountPayload {
     pub count_no: String,
     pub warehouse_id: i64,
-    pub count_type: i16,
+    pub count_type: i32,
     pub plan_count_date: Option<chrono::NaiveDate>,
     pub remark: Option<String>,
     pub details: Vec<StockCountDetailPayload>,
@@ -292,7 +292,7 @@ pub struct StockCountDetailDto {
     pub counted_quantity: f64,
     pub diff_quantity: f64,
     pub unit: String,
-    pub line_status: i16,
+    pub line_status: i32,
 }
 
 #[derive(Debug, Serialize)]

@@ -16,12 +16,12 @@ fn default_page_size() -> u64 {
 // Quality Inspection Tasks
 #[derive(Debug, Deserialize)]
 pub struct InspectionTaskQuery {
-    pub inspection_type: Option<i16>,
-    pub source_type: Option<i16>,
+    pub inspection_type: Option<i32>,
+    pub source_type: Option<i32>,
     pub source_order_no: Option<String>,
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub task_status: Option<i16>,
+    pub task_status: Option<i32>,
     pub inspector_id: Option<i64>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -32,8 +32,8 @@ pub struct InspectionTaskQuery {
 #[derive(Debug, Deserialize)]
 pub struct InspectionTaskPayload {
     pub task_no: String,
-    pub inspection_type: i16,
-    pub source_type: i16,
+    pub inspection_type: i32,
+    pub source_type: i32,
     pub source_order_no: String,
     pub material_id: i64,
     pub batch_no: Option<String>,
@@ -45,7 +45,7 @@ pub struct InspectionTaskPayload {
     pub plan_start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub plan_end_time: Option<chrono::DateTime<chrono::Utc>>,
     pub inspector_id: Option<i64>,
-    pub priority: Option<i16>,
+    pub priority: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -53,13 +53,13 @@ pub struct InspectionTaskPayload {
 pub struct InspectionTaskDto {
     pub id: i64,
     pub task_no: String,
-    pub inspection_type: i16,
-    pub source_type: i16,
+    pub inspection_type: i32,
+    pub source_type: i32,
     pub source_order_no: String,
     pub material_id: i64,
     pub batch_no: Option<String>,
-    pub task_status: i16,
-    pub inspection_result: Option<i16>,
+    pub task_status: i32,
+    pub inspection_result: Option<i32>,
     pub inspection_quantity: f64,
     pub qualified_quantity: f64,
     pub unqualified_quantity: f64,
@@ -69,18 +69,18 @@ pub struct InspectionTaskDto {
     pub actual_start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub actual_end_time: Option<chrono::DateTime<chrono::Utc>>,
     pub inspector_id: Option<i64>,
-    pub priority: i16,
+    pub priority: i32,
 }
 
 // Quality Inspection Reports
 #[derive(Debug, Deserialize)]
 pub struct InspectionReportQuery {
     pub task_id: Option<i64>,
-    pub inspection_type: Option<i16>,
+    pub inspection_type: Option<i32>,
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub report_status: Option<i16>,
-    pub inspection_result: Option<i16>,
+    pub report_status: Option<i32>,
+    pub inspection_result: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -91,7 +91,7 @@ pub struct InspectionReportQuery {
 pub struct InspectionReportPayload {
     pub report_no: String,
     pub task_id: i64,
-    pub inspection_type: i16,
+    pub inspection_type: i32,
     pub material_id: i64,
     pub batch_no: Option<String>,
     pub inspection_date: chrono::NaiveDate,
@@ -102,8 +102,8 @@ pub struct InspectionReportPayload {
     pub qualified_quantity: f64,
     pub unqualified_quantity: f64,
     pub unit: String,
-    pub inspection_result: i16,
-    pub disposition: Option<i16>,
+    pub inspection_result: i32,
+    pub disposition: Option<i32>,
     pub major_defects: Option<i32>,
     pub minor_defects: Option<i32>,
     pub critical_defects: Option<i32>,
@@ -117,7 +117,7 @@ pub struct InspectionReportDto {
     pub id: i64,
     pub report_no: String,
     pub task_id: i64,
-    pub inspection_type: i16,
+    pub inspection_type: i32,
     pub material_id: i64,
     pub batch_no: Option<String>,
     pub inspection_date: chrono::NaiveDate,
@@ -128,19 +128,19 @@ pub struct InspectionReportDto {
     pub qualified_quantity: f64,
     pub unqualified_quantity: f64,
     pub qualified_rate: f64,
-    pub inspection_result: i16,
-    pub disposition: Option<i16>,
-    pub report_status: i16,
+    pub inspection_result: i32,
+    pub disposition: Option<i32>,
+    pub report_status: i32,
 }
 
 // Nonconforming Products (NCR)
 #[derive(Debug, Deserialize)]
 pub struct NcrQuery {
-    pub ncr_status: Option<i16>,
+    pub ncr_status: Option<i32>,
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub defect_level: Option<i16>,
-    pub source_type: Option<i16>,
+    pub defect_level: Option<i32>,
+    pub source_type: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -151,14 +151,14 @@ pub struct NcrQuery {
 pub struct NcrPayload {
     pub ncr_no: String,
     pub report_id: Option<i64>,
-    pub source_type: i16,
+    pub source_type: i32,
     pub material_id: i64,
     pub batch_no: Option<String>,
     pub defect_quantity: f64,
     pub unit: String,
     pub defect_code: Option<String>,
     pub defect_name: Option<String>,
-    pub defect_level: Option<i16>,
+    pub defect_level: Option<i32>,
     pub defect_description: Option<String>,
     pub found_date: chrono::NaiveDate,
     pub found_time: chrono::DateTime<chrono::Utc>,
@@ -176,18 +176,18 @@ pub struct NcrDto {
     pub unit: String,
     pub defect_code: Option<String>,
     pub defect_name: Option<String>,
-    pub defect_level: i16,
+    pub defect_level: i32,
     pub found_date: chrono::NaiveDate,
-    pub ncr_status: i16,
-    pub disposition: Option<i16>,
+    pub ncr_status: i32,
+    pub disposition: Option<i32>,
 }
 
 // Customer Complaints
 #[derive(Debug, Deserialize)]
 pub struct ComplaintQuery {
     pub customer_id: Option<i64>,
-    pub complaint_status: Option<i16>,
-    pub complaint_type: Option<i16>,
+    pub complaint_status: Option<i32>,
+    pub complaint_type: Option<i32>,
     pub material_id: Option<i64>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -201,8 +201,8 @@ pub struct ComplaintPayload {
     pub customer_id: i64,
     pub material_id: i64,
     pub batch_no: Option<String>,
-    pub complaint_type: i16,
-    pub complaint_level: Option<i16>,
+    pub complaint_type: i32,
+    pub complaint_level: Option<i32>,
     pub complaint_date: chrono::NaiveDate,
     pub complaint_time: chrono::DateTime<chrono::Utc>,
     pub complaint_quantity: Option<f64>,
@@ -220,10 +220,10 @@ pub struct ComplaintDto {
     pub customer_id: i64,
     pub material_id: i64,
     pub batch_no: Option<String>,
-    pub complaint_type: i16,
-    pub complaint_level: i16,
+    pub complaint_type: i32,
+    pub complaint_level: i32,
     pub complaint_date: chrono::NaiveDate,
-    pub complaint_status: i16,
+    pub complaint_status: i32,
     pub handler_id: Option<i64>,
 }
 
@@ -231,7 +231,7 @@ pub struct ComplaintDto {
 #[derive(Debug, Deserialize)]
 pub struct ReworkOrderQuery {
     pub ncr_id: Option<i64>,
-    pub rework_status: Option<i16>,
+    pub rework_status: Option<i32>,
     pub material_id: Option<i64>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -247,7 +247,7 @@ pub struct ReworkOrderPayload {
     pub batch_no: Option<String>,
     pub rework_quantity: f64,
     pub unit: String,
-    pub rework_type: i16,
+    pub rework_type: i32,
     pub rework_reason: String,
     pub rework_plan: Option<String>,
     pub workshop_id: Option<i64>,
@@ -268,15 +268,15 @@ pub struct ReworkOrderDto {
     pub completed_quantity: f64,
     pub qualified_quantity: f64,
     pub unit: String,
-    pub rework_type: i16,
-    pub rework_status: i16,
+    pub rework_type: i32,
+    pub rework_status: i32,
 }
 
 // Measuring Equipment
 #[derive(Debug, Deserialize)]
 pub struct MeasuringEquipmentQuery {
-    pub equipment_type: Option<i16>,
-    pub equipment_status: Option<i16>,
+    pub equipment_type: Option<i32>,
+    pub equipment_status: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -289,11 +289,11 @@ pub struct MeasuringEquipmentPayload {
     pub equipment_code: String,
     pub equipment_name: String,
     pub equipment_model: Option<String>,
-    pub equipment_type: i16,
+    pub equipment_type: i32,
     pub manufacturer: Option<String>,
     pub calibration_cycle: Option<i32>,
     pub next_calibration_date: Option<chrono::NaiveDate>,
-    pub equipment_status: Option<i16>,
+    pub equipment_status: Option<i32>,
     pub location: Option<String>,
     pub remark: Option<String>,
 }
@@ -304,8 +304,8 @@ pub struct MeasuringEquipmentDto {
     pub equipment_code: String,
     pub equipment_name: String,
     pub equipment_model: Option<String>,
-    pub equipment_type: i16,
-    pub equipment_status: i16,
+    pub equipment_type: i32,
+    pub equipment_status: i32,
     pub next_calibration_date: Option<chrono::NaiveDate>,
     pub location: Option<String>,
 }
@@ -354,7 +354,7 @@ pub struct SupplierQualityEvaluationDto {
     pub quantity_qualified_rate: f64,
     pub total_score: f64,
     pub evaluation_level: String,
-    pub is_approved: i16,
+    pub is_approved: i32,
 }
 
 // Quality Traceability Records
@@ -362,7 +362,7 @@ pub struct SupplierQualityEvaluationDto {
 pub struct QualityTraceabilityRecordQuery {
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub trace_type: Option<i16>,
+    pub trace_type: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -372,7 +372,7 @@ pub struct QualityTraceabilityRecordQuery {
 #[derive(Debug, Deserialize)]
 pub struct QualityTraceabilityRecordPayload {
     pub trace_no: String,
-    pub trace_type: i16,
+    pub trace_type: i32,
     pub material_id: i64,
     pub batch_no: String,
     pub serial_no: Option<String>,
@@ -387,7 +387,7 @@ pub struct QualityTraceabilityRecordPayload {
 pub struct QualityTraceabilityRecordDto {
     pub id: i64,
     pub trace_no: String,
-    pub trace_type: i16,
+    pub trace_type: i32,
     pub material_id: i64,
     pub batch_no: String,
     pub serial_no: Option<String>,
@@ -400,7 +400,7 @@ pub struct QualityTraceabilityRecordDto {
 #[derive(Debug, Deserialize)]
 pub struct QualityCostQuery {
     pub cost_period: Option<String>,
-    pub cost_category: Option<i16>,
+    pub cost_category: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -412,7 +412,7 @@ pub struct QualityCostPayload {
     pub cost_no: String,
     pub cost_period: String,
     pub cost_date: chrono::NaiveDate,
-    pub cost_category: i16,
+    pub cost_category: i32,
     pub cost_type: String,
     pub cost_item: String,
     pub cost_amount: f64,
@@ -426,7 +426,7 @@ pub struct QualityCostDto {
     pub cost_no: String,
     pub cost_period: String,
     pub cost_date: chrono::NaiveDate,
-    pub cost_category: i16,
+    pub cost_category: i32,
     pub cost_type: String,
     pub cost_item: String,
     pub cost_amount: f64,
@@ -435,7 +435,7 @@ pub struct QualityCostDto {
 // Quality KPI
 #[derive(Debug, Deserialize)]
 pub struct QualityKpiQuery {
-    pub kpi_type: Option<i16>,
+    pub kpi_type: Option<i32>,
     pub dept_id: Option<i64>,
     pub workshop_id: Option<i64>,
     pub start_date: Option<chrono::NaiveDate>,
@@ -449,7 +449,7 @@ pub struct QualityKpiQuery {
 #[derive(Debug, Deserialize)]
 pub struct QualityKpiPayload {
     pub kpi_date: chrono::NaiveDate,
-    pub kpi_type: i16,
+    pub kpi_type: i32,
     pub dept_id: Option<i64>,
     pub workshop_id: Option<i64>,
     pub batch_qualified_rate: f64,
@@ -474,7 +474,7 @@ pub struct QualityKpiPayload {
 pub struct QualityKpiDto {
     pub id: i64,
     pub kpi_date: chrono::NaiveDate,
-    pub kpi_type: i16,
+    pub kpi_type: i32,
     pub dept_id: Option<i64>,
     pub workshop_id: Option<i64>,
     pub batch_qualified_rate: f64,

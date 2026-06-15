@@ -4,8 +4,8 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 
 #[derive(Debug)]
 pub struct PlanFilter {
-    pub plan_status: Option<i8>,
-    pub plan_type: Option<i8>,
+    pub plan_status: Option<i32>,
+    pub plan_type: Option<i32>,
     pub keyword: Option<String>,
 }
 
@@ -48,9 +48,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: production_plans::ActiveModel,
 ) -> Result<production_plans::Model> {
-    Ok(production_plans::Entity::insert(active)
+    let res = production_plans::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(production_plans::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

@@ -7,7 +7,7 @@ use sea_orm::{
 
 #[derive(Debug)]
 pub struct EquipmentFilter {
-    pub status: Option<i16>,
+    pub status: Option<i32>,
 }
 
 pub async fn list(
@@ -96,7 +96,7 @@ pub async fn upsert_mqtt_config(
 pub async fn append_status_log(
     conn: ConnRef<'_>,
     equipment_id: i32,
-    status: i16,
+    status: i32,
     running_param: Option<serde_json::Value>,
     error_code: Option<String>,
     error_desc: Option<String>,

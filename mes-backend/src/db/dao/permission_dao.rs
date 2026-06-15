@@ -7,7 +7,7 @@ pub struct PermissionNode {
     pub id: i64,
     pub permission_code: String,
     pub permission_name: String,
-    pub permission_type: i8,
+    pub permission_type: i32,
     pub route_path: Option<String>,
     pub component_path: Option<String>,
     pub icon: Option<String>,
@@ -30,9 +30,18 @@ pub async fn list_by_role_ids(
     if role_ids.is_empty() {
         return Ok(Vec::new());
     }
-    let perms = permissions::Entity::find()
-        .inner_join(role_permissions::Entity)
+    let perm_ids = role_permissions::Entity::find()
         .filter(role_permissions::Column::RoleId.is_in(role_ids.iter().cloned()))
+        .all(conn)
+        .await?
+        .into_iter()
+        .map(|rp| rp.permission_id)
+        .collect::<Vec<i64>>();
+    if perm_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    let perms = permissions::Entity::find()
+        .filter(permissions::Column::Id.is_in(perm_ids))
         .all(conn)
         .await?;
     Ok(perms)

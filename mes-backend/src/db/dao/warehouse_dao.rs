@@ -6,8 +6,8 @@ use sea_orm::{
 
 #[derive(Debug, Default)]
 pub struct WarehouseFilter {
-    pub warehouse_type: Option<i16>,
-    pub status: Option<i16>,
+    pub warehouse_type: Option<i32>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
 }
 
@@ -56,9 +56,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: warehouses::ActiveModel,
 ) -> Result<warehouses::Model> {
-    Ok(warehouses::Entity::insert(active)
+    let res = warehouses::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(warehouses::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -67,7 +71,7 @@ pub async fn update(
     mut active: warehouses::ActiveModel,
 ) -> Result<Option<warehouses::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(warehouses::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -79,7 +83,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
 
     active.is_deleted = Set(1);
     active.updated_time = Set(chrono::Utc::now().into());
-    active.update(conn).await?;
+    warehouses::Entity::update(active).exec(conn).await?;
     Ok(())
 }
 

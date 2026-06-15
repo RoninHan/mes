@@ -6,8 +6,8 @@ use sea_orm_migration::sea_query::Expr;
 #[derive(Debug)]
 pub struct EquipmentInspectionFilter {
     pub equipment_id: Option<i64>,
-    pub inspection_type: Option<i16>,
-    pub result: Option<i16>,
+    pub inspection_type: Option<i32>,
+    pub result: Option<i32>,
 }
 
 pub async fn list(
@@ -51,9 +51,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: equipment_inspections::ActiveModel,
 ) -> Result<equipment_inspections::Model> {
-    Ok(equipment_inspections::Entity::insert(active)
+    let res = equipment_inspections::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(equipment_inspections::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

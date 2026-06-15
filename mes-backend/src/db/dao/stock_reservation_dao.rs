@@ -6,7 +6,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 pub struct StockReservationFilter {
     pub material_id: Option<i64>,
     pub warehouse_id: Option<i64>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
 }
 
 pub async fn list(
@@ -50,9 +50,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: stock_reservations::ActiveModel,
 ) -> Result<stock_reservations::Model> {
-    Ok(stock_reservations::Entity::insert(active)
+    let res = stock_reservations::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(stock_reservations::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

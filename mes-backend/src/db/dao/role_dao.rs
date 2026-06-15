@@ -4,7 +4,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 
 #[derive(Debug)]
 pub struct RoleFilter {
-    pub status: Option<i8>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
 }
 
@@ -41,9 +41,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: roles::ActiveModel,
 ) -> Result<roles::Model> {
-    Ok(roles::Entity::insert(active)
+    let res = roles::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(roles::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

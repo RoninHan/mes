@@ -9,7 +9,7 @@ use axum::{
     Json,
 };
 use chrono::{DateTime, Utc};
-use sea_orm::ActiveValue::Set;
+use sea_orm::{ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
 
 pub fn router() -> axum::Router<ApiContext> {
     use axum::routing::{delete, get, post, put};
@@ -248,7 +248,7 @@ async fn run_auto_schedule(
             start_time: Set(start_time.into()),
             end_time: Set(end_time.into()),
             status: Set(1),
-            priority: Set(wo.work_order_status.unwrap_or(3)),
+            priority: Set(wo.work_order_status),
             remark: Set(Some("auto scheduled".to_string())),
             ..Default::default()
         };

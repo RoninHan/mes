@@ -7,7 +7,7 @@ use sea_orm::{
 #[derive(Debug)]
 pub struct UserFilter {
     pub dept_id: Option<i64>,
-    pub status: Option<i8>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
 }
 
@@ -60,9 +60,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: users::ActiveModel,
 ) -> Result<users::Model> {
-    Ok(users::Entity::insert(active)
+    let res = users::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(users::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

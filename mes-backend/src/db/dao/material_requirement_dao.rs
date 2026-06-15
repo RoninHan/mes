@@ -46,9 +46,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: material_requirements::ActiveModel,
 ) -> Result<material_requirements::Model> {
-    Ok(material_requirements::Entity::insert(active)
+    let res = material_requirements::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(material_requirements::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

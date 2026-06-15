@@ -1,14 +1,15 @@
 use crate::db::entity::{self, outbound_order_lines, outbound_orders, ConnRef};
 use anyhow::Result;
 use sea_orm::{
+    ModelTrait,
     ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait,
 };
 
 #[derive(Debug)]
 pub struct OutboundFilter {
     pub warehouse_id: Option<i64>,
-    pub outbound_type: Option<i16>,
-    pub order_status: Option<i16>,
+    pub outbound_type: Option<i32>,
+    pub order_status: Option<i32>,
 }
 
 pub async fn list(
@@ -47,8 +48,8 @@ pub async fn get_by_id(
         .one(conn)
         .await?
     {
-        let details = order
-            .find_related(outbound_order_lines::Entity)
+        let details = outbound_order_lines::Entity::find()
+            .filter(outbound_order_lines::Column::OutboundId.eq(order.id))
             .filter(outbound_order_lines::Column::IsDeleted.eq(0))
             .all(conn)
             .await?;
@@ -70,20 +71,32 @@ pub async fn create(
 ) -> Result<(outbound_orders::Model, Vec<outbound_order_lines::Model>)> {
     let txn = conn.begin().await?;
 
-    let order = outbound_orders::Entity::insert(payload.order)
-        .exec_with_returning(&txn)
+    let order_result = outbound_orders::Entity::insert(payload.order)
+        .exec(&txn)
         .await?;
+    let order_id = order_result.last_insert_id;
 
-    let mut created_details = Vec::new();
+    let mut created_detail_ids = Vec::new();
     for mut d in payload.details {
-        d.outbound_id = Set(order.id);
+        d.outbound_id = Set(order_id);
         let m = outbound_order_lines::Entity::insert(d)
-            .exec_with_returning(&txn)
+            .exec(&txn)
             .await?;
-        created_details.push(m);
+        created_detail_ids.push(m.last_insert_id);
     }
 
     txn.commit().await?;
+
+    let order = outbound_orders::Entity::find_by_id(order_id)
+        .one(conn)
+        .await?
+        .unwrap();
+    let mut created_details = Vec::new();
+    for id in created_detail_ids {
+        if let Some(m) = outbound_order_lines::Entity::find_by_id(id).one(conn).await? {
+            created_details.push(m);
+        }
+    }
     Ok((order, created_details))
 }
 
@@ -106,8 +119,8 @@ pub async fn update(
 
     let mut order_active = payload.order;
     order_active.id = Set(id);
-    let order = outbound_orders::Entity::update(order_active)
-        .exec_with_returning(&txn)
+    outbound_orders::Entity::update(order_active)
+        .exec(&txn)
         .await?;
 
     outbound_order_lines::Entity::update_many()
@@ -119,16 +132,27 @@ pub async fn update(
         .exec(&txn)
         .await?;
 
-    let mut created_details = Vec::new();
+    let mut created_detail_ids = Vec::new();
     for mut d in payload.details {
-        d.outbound_id = Set(order.id);
+        d.outbound_id = Set(id);
         let m = outbound_order_lines::Entity::insert(d)
-            .exec_with_returning(&txn)
+            .exec(&txn)
             .await?;
-        created_details.push(m);
+        created_detail_ids.push(m.last_insert_id);
     }
 
     txn.commit().await?;
+
+    let order = outbound_orders::Entity::find_by_id(id)
+        .one(conn)
+        .await?
+        .unwrap();
+    let mut created_details = Vec::new();
+    for detail_id in created_detail_ids {
+        if let Some(m) = outbound_order_lines::Entity::find_by_id(detail_id).one(conn).await? {
+            created_details.push(m);
+        }
+    }
     Ok(Some((order, created_details)))
 }
 

@@ -68,12 +68,15 @@ async fn login(
         None => return Err(StatusCode::UNAUTHORIZED),
     };
 
-    let exp = (Utc::now() + Duration::hours(8)).timestamp() as usize;
+    let exp = (Utc::now() + Duration::hours(8)).timestamp();
     let claims = Claims {
         sub: user.id,
         username: user.username.clone(),
         roles: vec![],
+        permissions: vec![],
+        sid: String::new(),
         exp,
+        iat: Utc::now().timestamp() as i64,
     };
 
     let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "secret".to_string());

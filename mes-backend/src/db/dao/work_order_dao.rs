@@ -6,7 +6,7 @@ use sea_orm::{
 
 #[derive(Debug)]
 pub struct WorkOrderFilter {
-    pub work_order_status: Option<i8>,
+    pub work_order_status: Option<i32>,
     pub equipment_id: Option<i64>,
     pub keyword: Option<String>,
 }
@@ -46,9 +46,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: work_orders::ActiveModel,
 ) -> Result<work_orders::Model> {
-    Ok(work_orders::Entity::insert(active)
+    let res = work_orders::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(work_orders::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

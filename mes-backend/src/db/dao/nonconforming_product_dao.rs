@@ -4,11 +4,11 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 
 #[derive(Debug, Default)]
 pub struct NonconformingProductFilter {
-    pub ncr_status: Option<i16>,
+    pub ncr_status: Option<i32>,
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub defect_level: Option<i16>,
-    pub source_type: Option<i16>,
+    pub defect_level: Option<i32>,
+    pub source_type: Option<i32>,
 }
 
 pub async fn list(
@@ -56,9 +56,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: nonconforming_products::ActiveModel,
 ) -> Result<nonconforming_products::Model> {
-    Ok(nonconforming_products::Entity::insert(active)
+    let res = nonconforming_products::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(nonconforming_products::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -67,7 +71,7 @@ pub async fn update(
     mut active: nonconforming_products::ActiveModel,
 ) -> Result<Option<nonconforming_products::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(nonconforming_products::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -79,7 +83,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    nonconforming_products::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

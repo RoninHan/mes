@@ -6,7 +6,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 pub struct StockAlertFilter {
     pub material_id: Option<i64>,
     pub warehouse_id: Option<i64>,
-    pub enabled: Option<i16>,
+    pub enabled: Option<i32>,
 }
 
 pub async fn list(
@@ -50,9 +50,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: stock_alert_rules::ActiveModel,
 ) -> Result<stock_alert_rules::Model> {
-    Ok(stock_alert_rules::Entity::insert(active)
+    let res = stock_alert_rules::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(stock_alert_rules::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

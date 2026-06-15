@@ -5,7 +5,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 #[derive(Debug)]
 pub struct CategoryFilter {
     pub parent_id: Option<i64>,
-    pub status: Option<i8>,
+    pub status: Option<i32>,
 }
 
 pub async fn list(
@@ -48,9 +48,13 @@ pub async fn create(
     if active.status.is_not_set() {
         active.status = Set(1);
     }
-    Ok(material_categories::Entity::insert(active)
+    let res = material_categories::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(material_categories::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(

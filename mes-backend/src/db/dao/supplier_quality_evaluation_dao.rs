@@ -44,9 +44,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: supplier_quality_evaluations::ActiveModel,
 ) -> Result<supplier_quality_evaluations::Model> {
-    Ok(supplier_quality_evaluations::Entity::insert(active)
+    let res = supplier_quality_evaluations::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(supplier_quality_evaluations::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -55,7 +59,7 @@ pub async fn update(
     mut active: supplier_quality_evaluations::ActiveModel,
 ) -> Result<Option<supplier_quality_evaluations::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(supplier_quality_evaluations::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -67,7 +71,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    supplier_quality_evaluations::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 

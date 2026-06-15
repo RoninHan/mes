@@ -20,7 +20,7 @@ pub struct PageResult<T> {
 #[derive(Debug, Deserialize)]
 pub struct CategoryQuery {
     pub parent_id: Option<i64>,
-    pub status: Option<i8>,
+    pub status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -34,7 +34,7 @@ pub struct CategoryPayload {
     pub parent_id: Option<i64>,
     pub category_level: Option<i32>,
     pub sort_order: Option<i32>,
-    pub status: Option<i8>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -46,7 +46,7 @@ pub struct CategoryDto {
     pub parent_id: i64,
     pub category_level: i32,
     pub sort_order: i32,
-    pub status: i8,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -55,7 +55,7 @@ pub struct CategoryDto {
 #[derive(Debug, Deserialize)]
 pub struct MaterialsQuery {
     pub category_id: Option<i64>,
-    pub material_type: Option<i8>,
+    pub material_type: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -70,9 +70,9 @@ pub struct MaterialPayload {
     pub material_spec: Option<String>,
     pub material_model: Option<String>,
     pub category_id: i64,
-    pub material_type: i8,
+    pub material_type: i32,
     pub unit: String,
-    pub status: Option<i8>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -83,9 +83,9 @@ pub struct MaterialDto {
     pub material_name: String,
     pub material_spec: Option<String>,
     pub category_id: i64,
-    pub material_type: i8,
+    pub material_type: i32,
     pub unit: String,
-    pub status: i8,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -93,8 +93,8 @@ pub struct MaterialDto {
 
 #[derive(Debug, Deserialize)]
 pub struct SupplierQuery {
-    pub supplier_type: Option<i8>,
-    pub status: Option<i8>,
+    pub supplier_type: Option<i32>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -106,11 +106,11 @@ pub struct SupplierQuery {
 pub struct SupplierPayload {
     pub supplier_code: String,
     pub supplier_name: String,
-    pub supplier_type: i8,
+    pub supplier_type: i32,
     pub supplier_level: Option<String>,
     pub contact_person: Option<String>,
     pub contact_phone: Option<String>,
-    pub status: Option<i8>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -119,11 +119,11 @@ pub struct SupplierDto {
     pub id: i64,
     pub supplier_code: String,
     pub supplier_name: String,
-    pub supplier_type: i8,
+    pub supplier_type: i32,
     pub supplier_level: Option<String>,
     pub contact_person: Option<String>,
     pub contact_phone: Option<String>,
-    pub status: i8,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -131,8 +131,8 @@ pub struct SupplierDto {
 
 #[derive(Debug, Deserialize)]
 pub struct CustomerQuery {
-    pub customer_type: Option<i8>,
-    pub status: Option<i8>,
+    pub customer_type: Option<i32>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -144,11 +144,11 @@ pub struct CustomerQuery {
 pub struct CustomerPayload {
     pub customer_code: String,
     pub customer_name: String,
-    pub customer_type: i8,
+    pub customer_type: i32,
     pub customer_level: Option<String>,
     pub contact_person: Option<String>,
     pub contact_phone: Option<String>,
-    pub status: Option<i8>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -157,11 +157,11 @@ pub struct CustomerDto {
     pub id: i64,
     pub customer_code: String,
     pub customer_name: String,
-    pub customer_type: i8,
+    pub customer_type: i32,
     pub customer_level: Option<String>,
     pub contact_person: Option<String>,
     pub contact_phone: Option<String>,
-    pub status: i8,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -169,7 +169,7 @@ pub struct CustomerDto {
 
 #[derive(Debug, Deserialize)]
 pub struct WorkshopQuery {
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -181,9 +181,9 @@ pub struct WorkshopQuery {
 pub struct WorkshopPayload {
     pub workshop_code: String,
     pub workshop_name: String,
-    pub workshop_type: i16,
+    pub workshop_type: i32,
     pub manager_id: Option<i64>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -192,9 +192,9 @@ pub struct WorkshopDto {
     pub id: i64,
     pub workshop_code: String,
     pub workshop_name: String,
-    pub workshop_type: i16,
+    pub workshop_type: i32,
     pub manager_id: Option<i64>,
-    pub status: i16,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -202,8 +202,8 @@ pub struct WorkshopDto {
 
 #[derive(Debug, Deserialize)]
 pub struct WarehouseQuery {
-    pub warehouse_type: Option<i16>,
-    pub status: Option<i16>,
+    pub warehouse_type: Option<i32>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -215,9 +215,9 @@ pub struct WarehouseQuery {
 pub struct WarehousePayload {
     pub warehouse_code: String,
     pub warehouse_name: String,
-    pub warehouse_type: i16,
+    pub warehouse_type: i32,
     pub location: Option<String>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -226,9 +226,9 @@ pub struct WarehouseDto {
     pub id: i64,
     pub warehouse_code: String,
     pub warehouse_name: String,
-    pub warehouse_type: i16,
+    pub warehouse_type: i32,
     pub location: Option<String>,
-    pub status: i16,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -237,7 +237,7 @@ pub struct WarehouseDto {
 #[derive(Debug, Deserialize)]
 pub struct LocationQuery {
     pub warehouse_id: Option<i64>,
-    pub status: Option<i16>,
+    pub status: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -250,8 +250,8 @@ pub struct LocationPayload {
     pub warehouse_id: i64,
     pub location_code: String,
     pub location_name: String,
-    pub location_type: i16,
-    pub status: Option<i16>,
+    pub location_type: i32,
+    pub status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -261,8 +261,8 @@ pub struct LocationDto {
     pub warehouse_id: i64,
     pub location_code: String,
     pub location_name: String,
-    pub location_type: i16,
-    pub status: i16,
+    pub location_type: i32,
+    pub status: i32,
     pub remark: Option<String>,
 }
 
@@ -271,8 +271,8 @@ pub struct LocationDto {
 #[derive(Debug, Deserialize)]
 pub struct BomQuery {
     pub material_id: Option<i64>,
-    pub status: Option<i16>,
-    pub is_default: Option<i16>,
+    pub status: Option<i32>,
+    pub is_default: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -284,9 +284,9 @@ pub struct BomPayload {
     pub material_id: i64,
     pub bom_code: String,
     pub version: String,
-    pub bom_type: i16,
-    pub is_default: Option<i16>,
-    pub status: Option<i16>,
+    pub bom_type: i32,
+    pub is_default: Option<i32>,
+    pub status: Option<i32>,
     pub items: Value,
     pub remark: Option<String>,
 }
@@ -297,9 +297,9 @@ pub struct BomDto {
     pub material_id: i64,
     pub bom_code: String,
     pub version: String,
-    pub bom_type: i16,
-    pub is_default: i16,
-    pub status: i16,
+    pub bom_type: i32,
+    pub is_default: i32,
+    pub status: i32,
     pub items: Value,
     pub remark: Option<String>,
 }
@@ -309,8 +309,8 @@ pub struct BomDto {
 #[derive(Debug, Deserialize)]
 pub struct ProcessRouteQuery {
     pub material_id: Option<i64>,
-    pub status: Option<i16>,
-    pub is_default: Option<i16>,
+    pub status: Option<i32>,
+    pub is_default: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -323,8 +323,8 @@ pub struct ProcessRoutePayload {
     pub route_code: String,
     pub route_name: String,
     pub version: String,
-    pub is_default: Option<i16>,
-    pub status: Option<i16>,
+    pub is_default: Option<i32>,
+    pub status: Option<i32>,
     pub operations: Value,
     pub remark: Option<String>,
 }
@@ -336,8 +336,8 @@ pub struct ProcessRouteDto {
     pub route_code: String,
     pub route_name: String,
     pub version: String,
-    pub is_default: i16,
-    pub status: i16,
+    pub is_default: i32,
+    pub status: i32,
     pub operations: Value,
     pub remark: Option<String>,
 }

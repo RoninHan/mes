@@ -16,8 +16,8 @@ pub struct PageResult<T> {
 // Production Plans
 #[derive(Debug, Deserialize)]
 pub struct PlanQuery {
-    pub plan_status: Option<i8>,
-    pub plan_type: Option<i8>,
+    pub plan_status: Option<i32>,
+    pub plan_type: Option<i32>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
     pub page: u64,
@@ -29,12 +29,12 @@ pub struct PlanQuery {
 pub struct PlanPayload {
     pub plan_no: String,
     pub plan_name: String,
-    pub plan_type: i8,
+    pub plan_type: i32,
     pub plan_period: Option<String>,
     pub plan_start_date: chrono::NaiveDate,
     pub plan_end_date: chrono::NaiveDate,
     pub remark: Option<String>,
-    pub plan_status: Option<i8>,
+    pub plan_status: Option<i32>,
 }
 
 #[derive(Debug, Serialize)]
@@ -42,17 +42,17 @@ pub struct PlanDto {
     pub id: i64,
     pub plan_no: String,
     pub plan_name: String,
-    pub plan_type: i8,
+    pub plan_type: i32,
     pub plan_start_date: chrono::NaiveDate,
     pub plan_end_date: chrono::NaiveDate,
-    pub plan_status: i8,
+    pub plan_status: i32,
     pub completion_rate: f64,
 }
 
 // Production Orders
 #[derive(Debug, Deserialize)]
 pub struct OrderQuery {
-    pub order_status: Option<i8>,
+    pub order_status: Option<i32>,
     pub workshop_id: Option<i64>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
@@ -70,7 +70,7 @@ pub struct OrderPayload {
     pub plan_start_date: chrono::NaiveDate,
     pub plan_end_date: chrono::NaiveDate,
     pub workshop_id: Option<i64>,
-    pub order_status: Option<i8>,
+    pub order_status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -82,7 +82,7 @@ pub struct OrderDto {
     pub material_id: i64,
     pub plan_quantity: f64,
     pub actual_quantity: f64,
-    pub order_status: i8,
+    pub order_status: i32,
     pub plan_start_date: chrono::NaiveDate,
     pub plan_end_date: chrono::NaiveDate,
 }
@@ -90,7 +90,7 @@ pub struct OrderDto {
 // Work Orders
 #[derive(Debug, Deserialize)]
 pub struct WorkOrderQuery {
-    pub work_order_status: Option<i8>,
+    pub work_order_status: Option<i32>,
     pub equipment_id: Option<i64>,
     pub keyword: Option<String>,
     #[serde(default = "default_page")]
@@ -105,7 +105,7 @@ pub struct WorkOrderPayload {
     pub production_order_id: i64,
     pub process_id: i64,
     pub plan_quantity: f64,
-    pub work_order_status: Option<i8>,
+    pub work_order_status: Option<i32>,
     pub remark: Option<String>,
 }
 
@@ -117,13 +117,13 @@ pub struct WorkOrderDto {
     pub process_id: i64,
     pub plan_quantity: f64,
     pub actual_quantity: f64,
-    pub work_order_status: i8,
+    pub work_order_status: i32,
 }
 
 // Production Reports
 #[derive(Debug, Deserialize)]
 pub struct ReportQuery {
-    pub report_type: Option<i8>,
+    pub report_type: Option<i32>,
     pub operator_id: Option<i64>,
     pub start_date: Option<chrono::NaiveDate>,
     pub end_date: Option<chrono::NaiveDate>,
@@ -140,7 +140,7 @@ pub struct ReportPayload {
     pub production_order_id: i64,
     pub process_id: i64,
     pub material_id: i64,
-    pub report_type: i8,
+    pub report_type: i32,
     pub report_date: chrono::NaiveDate,
     pub report_quantity: f64,
     pub qualified_quantity: f64,
@@ -154,7 +154,7 @@ pub struct ReportDto {
     pub id: i64,
     pub report_no: String,
     pub work_order_id: i64,
-    pub report_type: i8,
+    pub report_type: i32,
     pub report_date: chrono::NaiveDate,
     pub report_quantity: f64,
     pub qualified_quantity: f64,
@@ -202,7 +202,7 @@ pub struct MaterialRequirementDto {
 pub struct PickingOrderQuery {
     pub production_order_id: Option<i64>,
     pub warehouse_id: Option<i64>,
-    pub order_status: Option<i16>,
+    pub order_status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -225,7 +225,7 @@ pub struct PickingOrderPayload {
     pub production_order_id: i64,
     pub warehouse_id: i64,
     pub work_order_id: Option<i64>,
-    pub picking_type: i16,
+    pub picking_type: i32,
     pub plan_picking_date: Option<chrono::NaiveDate>,
     pub remark: Option<String>,
     pub details: Vec<PickingOrderDetailPayload>,
@@ -238,11 +238,11 @@ pub struct PickingOrderSummaryDto {
     pub production_order_id: i64,
     pub warehouse_id: i64,
     pub work_order_id: Option<i64>,
-    pub picking_type: i16,
+    pub picking_type: i32,
     pub plan_picking_date: Option<chrono::NaiveDate>,
     pub actual_picking_date: Option<chrono::NaiveDate>,
     pub total_quantity: f64,
-    pub order_status: i16,
+    pub order_status: i32,
 }
 
 #[derive(Debug, Serialize)]
@@ -255,7 +255,7 @@ pub struct PickingOrderDetailDto {
     pub plan_quantity: f64,
     pub actual_quantity: f64,
     pub unit: String,
-    pub line_status: i16,
+    pub line_status: i32,
 }
 
 #[derive(Debug, Serialize)]
@@ -270,7 +270,7 @@ pub struct PickingOrderWithDetailsDto {
 pub struct ReturnOrderQuery {
     pub production_order_id: Option<i64>,
     pub warehouse_id: Option<i64>,
-    pub order_status: Option<i16>,
+    pub order_status: Option<i32>,
     #[serde(default = "default_page")]
     pub page: u64,
     #[serde(default = "default_page_size")]
@@ -293,7 +293,7 @@ pub struct ReturnOrderPayload {
     pub production_order_id: i64,
     pub warehouse_id: i64,
     pub work_order_id: Option<i64>,
-    pub return_type: i16,
+    pub return_type: i32,
     pub plan_return_date: Option<chrono::NaiveDate>,
     pub remark: Option<String>,
     pub details: Vec<ReturnOrderDetailPayload>,
@@ -306,11 +306,11 @@ pub struct ReturnOrderSummaryDto {
     pub production_order_id: i64,
     pub warehouse_id: i64,
     pub work_order_id: Option<i64>,
-    pub return_type: i16,
+    pub return_type: i32,
     pub plan_return_date: Option<chrono::NaiveDate>,
     pub actual_return_date: Option<chrono::NaiveDate>,
     pub total_quantity: f64,
-    pub order_status: i16,
+    pub order_status: i32,
 }
 
 #[derive(Debug, Serialize)]
@@ -323,7 +323,7 @@ pub struct ReturnOrderDetailDto {
     pub plan_quantity: f64,
     pub actual_quantity: f64,
     pub unit: String,
-    pub line_status: i16,
+    pub line_status: i32,
 }
 
 #[derive(Debug, Serialize)]
@@ -352,7 +352,7 @@ pub struct ProductionReceiptPayload {
     pub material_id: i64,
     pub warehouse_id: i64,
     pub location_id: Option<i64>,
-    pub receipt_type: i16,
+    pub receipt_type: i32,
     pub receipt_date: Option<chrono::NaiveDate>,
     pub quantity: f64,
     pub qualified_quantity: f64,
@@ -370,7 +370,7 @@ pub struct ProductionReceiptDto {
     pub material_id: i64,
     pub warehouse_id: i64,
     pub location_id: Option<i64>,
-    pub receipt_type: i16,
+    pub receipt_type: i32,
     pub receipt_date: Option<chrono::NaiveDate>,
     pub quantity: f64,
     pub qualified_quantity: f64,

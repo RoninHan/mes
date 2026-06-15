@@ -8,6 +8,7 @@ pub async fn list_roles_for_user(
     user_roles::Entity::find()
         .filter(user_roles::Column::UserId.eq(user_id))
         .all(conn)
+        .await
 }
 
 pub async fn replace_user_roles(

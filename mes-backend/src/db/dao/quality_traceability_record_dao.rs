@@ -6,7 +6,7 @@ use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
 pub struct QualityTraceabilityRecordFilter {
     pub material_id: Option<i64>,
     pub batch_no: Option<String>,
-    pub trace_type: Option<i16>,
+    pub trace_type: Option<i32>,
 }
 
 pub async fn list(
@@ -48,9 +48,13 @@ pub async fn create(
     conn: ConnRef<'_>,
     active: quality_traceability_records::ActiveModel,
 ) -> Result<quality_traceability_records::Model> {
-    Ok(quality_traceability_records::Entity::insert(active)
+    let res = quality_traceability_records::Entity::insert(active)
         .exec(conn)
-        .await?)
+        .await?;
+    Ok(quality_traceability_records::Entity::find_by_id(res.last_insert_id)
+        .one(conn)
+        .await?
+        .expect("just inserted"))
 }
 
 pub async fn update(
@@ -59,7 +63,7 @@ pub async fn update(
     mut active: quality_traceability_records::ActiveModel,
 ) -> Result<Option<quality_traceability_records::Model>> {
     active.id = Set(id);
-    Ok(Some(active.update(conn).await?))
+    Ok(Some(quality_traceability_records::Entity::update(active).exec(conn).await?))
 }
 
 pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
@@ -71,7 +75,7 @@ pub async fn delete(conn: ConnRef<'_>, id: i64) -> Result<()> {
     
     active_model.is_deleted = Set(1);
     active_model.updated_time = Set(chrono::Utc::now().into());
-    active_model.update(conn).await?;
+    quality_traceability_records::Entity::update(active_model).exec(conn).await?;
     Ok(())
 }
 
