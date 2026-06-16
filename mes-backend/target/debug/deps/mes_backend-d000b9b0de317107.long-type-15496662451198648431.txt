@@ -1,1 +1,0 @@
-sea_orm_migration::seaql_migrations::Model: IntoActiveModel<db::entity::equipment::ActiveModel>
