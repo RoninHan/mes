@@ -1,4 +1,5 @@
 target/
+!target/release/mes-backend
 .git/
 .gitignore
 .env
